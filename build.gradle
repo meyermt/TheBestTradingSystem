@@ -23,6 +23,7 @@ allprojects {
         compile 'com.sparkjava:spark-template-velocity:2.5.5'
         compile 'com.mashape.unirest:unirest-java:1.4.9'
         compile 'com.sparkjava:spark-core:2.5.5'
+        compile 'com.google.code.gson:gson:2.8.0'
         compile 'org.xerial:sqlite-jdbc:3.16.1'
         compile 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
         runtime 'ch.qos.logback:logback-classic:1.2.2'

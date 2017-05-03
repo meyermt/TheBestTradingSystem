@@ -16,6 +16,12 @@ Same as you would any other project. Just run the main class from within Intelli
 1. From inside the `TheBestTradingSystem` dir, run `./gradlew :<sub-module>:shadowJar` (e.g., `./gradlew :admin-server:shadowJar`). If you are building on a Windows command line, run `gradlew :<sub-module>:shadowJar`. This builds a JAR of the project that contains all of the source and dependency JARs. It places the JAR in `./<sub-module>/build/libs/<sub-module>-all.jar`.
 2. Run the sub-module with `java -jar <sub-module>/libs/<sub-module>-all.jar` (e.g., `java -jar trader/build/libs/trader-all.jar`). This makes each module pretty portable, as you can just copy the `-all.jar` around wherever you would like to run it.
 
+## Refreshing Project in IntelliJ
+
+If you ever update dependencies, you'll need to refresh the project in IntelliJ so IntelliJ knows about them.
+
+Go to __View -> Tool Windows -> Gradle__ (or click the little Gradle tab on the right side of the screen) and then click the little arrows in a circle icon.
+
 ## Explanation of Base Files and Structure
 
 Explains structure of project and what some files are used for.
