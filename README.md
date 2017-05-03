@@ -3,7 +3,7 @@ Arguably the best and fastest trading system in the world.
 
 ## How to Import this into IntelliJ
 
-Follow [directions from IntelliJ]https://www.jetbrains.com/help/idea/2017.1/importing-a-gradle-project-or-a-gradle-module.html . You should select the option that says "Use customizable Gradle wrapper".
+Follow [directions from IntelliJ]https://www.jetbrains.com/help/idea/2017.1/importing-a-gradle-project-or-a-gradle-module.html . You should select the option that says "Use Gradle wrapper task configuration".
 
 ## How to Build and Run Each module
 
