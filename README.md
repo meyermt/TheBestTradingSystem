@@ -3,7 +3,7 @@ Arguably the best and fastest trading system in the world.
 
 ## How to Import this into IntelliJ
 
-Follow [directions from IntelliJ]https://www.jetbrains.com/help/idea/2017.1/importing-a-gradle-project-or-a-gradle-module.html . You should select the option that says "Use Gradle wrapper task configuration".
+Follow [directions from IntelliJ](https://www.jetbrains.com/help/idea/2017.1/importing-a-gradle-project-or-a-gradle-module.html) . You should select the option that says "Use Gradle wrapper task configuration".
 
 ## How to Build and Run Each module
 
@@ -28,7 +28,7 @@ Explains structure of project and what some files are used for.
 
 ### Notes on Structure
 
-**src/main/java directory** From what I could tell, IntelliJ tends to only set users up with a `src` directory. However, this project is currently following Maven's more [standard directory layout]https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html
+**src/main/java directory** From what I could tell, IntelliJ tends to only set users up with a `src` directory. However, this project is currently following Maven's more [standard directory layout](https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html).
 
 **gradle directory** The gradle directory houses components used for the Gradle wrapper. Basically, it tells the `gradlew` or `gradlew.bat` (depending on if you are building on Unix or Windows) which version of Gradle to use and where to get that version.
 
