@@ -27,13 +27,15 @@ public class Main {
      * @param args server options/arguments
      */
     public static void main(String[] args) {
-        logger.info("Initializing admin-server on port ");
+        logger.info("Initializing admin-server");
         Map<String, Integer> ports = loadPortOpts(args);
         try {
+            logger.info("Running peer port on {}", ports.get(PEER_PORT));
             ServerSocket peerServer = new ServerSocket(ports.get(PEER_PORT));
-            new Thread(new PeerServer(peerServer));
+            new Thread(new PeerServer(peerServer)).start();
+            logger.info("Running trader port on {}", ports.get(TRADER_PORT));
             ServerSocket traderServer = new ServerSocket(ports.get(TRADER_PORT));
-            new Thread(new TraderServer(traderServer));
+            new Thread(new TraderServer(traderServer)).start();
         } catch (IOException e) {
             throw new RuntimeException("Unable to load new server.", e);
         }
