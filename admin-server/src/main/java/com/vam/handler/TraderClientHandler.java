@@ -1,6 +1,6 @@
 package com.vam.handler;
 
-import com.vam.server.TraderServer;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.vam.json.TraderLogin;
 
 /**
  * Handles requests and messaging to traders. Should assign peer ip and port to incoming login requests
@@ -35,11 +35,11 @@ public class TraderClientHandler implements Runnable{
         try {
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-            String clientInput;
-            while ((clientInput = input.readLine()) != null) {
-                // read json here
-            }
             // add API code here
+            // the below code is just for example, will change when API added.
+            String clientInput = input.readLine();
+            Gson gson = new Gson();
+            TraderLogin login = gson.fromJson(clientInput, TraderLogin.class);
             client.close();
         } catch (IOException e) {
             logger.error("Ran into an issue reading or writing from client {}", client.getPort(), e);
