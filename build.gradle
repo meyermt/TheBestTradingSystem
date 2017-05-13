@@ -20,6 +20,7 @@ allprojects {
 
     dependencies {
         compile 'org.slf4j:slf4j-api:1.7.22'
+        compile 'commons-cli:commons-cli:1.4'
         compile 'com.sparkjava:spark-template-velocity:2.5.5'
         compile 'com.mashape.unirest:unirest-java:1.4.9'
         compile 'com.sparkjava:spark-core:2.5.5'
@@ -32,6 +33,9 @@ allprojects {
 }
 
 project(':admin-server') {
+    dependencies {
+        compile project(':shared')
+    }
     jar {
         baseName = 'admin-server'
         version =  '0.1.0'
@@ -44,6 +48,9 @@ project(':admin-server') {
 }
 
 project(':market-peer') {
+    dependencies {
+        compile project(':shared')
+    }
     jar {
         baseName = 'market-peer'
         version =  '0.1.0'
@@ -56,6 +63,9 @@ project(':market-peer') {
 }
 
 project(':trader') {
+    dependencies {
+        compile project(':shared')
+    }
     jar {
         baseName = 'trader'
         version =  '0.1.0'
