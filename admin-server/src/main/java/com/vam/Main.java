@@ -1,5 +1,9 @@
 package com.vam;
 
+import com.vam.dao.PeersDAO;
+import com.vam.dao.PeersDAOSQLLite;
+import com.vam.dao.StocksDAO;
+import com.vam.dao.StocksDAOSQLLite;
 import com.vam.server.PeerServer;
 import com.vam.server.TraderServer;
 import org.apache.commons.cli.*;
@@ -28,6 +32,9 @@ public class Main {
      */
     public static void main(String[] args) {
         logger.info("Initializing admin-server");
+        StocksDAO stocksDao = initStocksDB();
+        //PeersDAO peersDB = initPeersDB();
+        stocksDao.getAllStocks().forEach(stock -> logger.info("stock is {}", stock.toString()));
         Map<String, Integer> ports = loadPortOpts(args);
         try {
             logger.info("Running peer port on {}", ports.get(PEER_PORT));
@@ -64,6 +71,14 @@ public class Main {
             formatter.printHelp("admin server help", options);
             throw new RuntimeException("Unable to read arguments, see help.");
         }
+    }
+
+    private static StocksDAO initStocksDB() {
+        return new StocksDAOSQLLite();
+    }
+
+    private static PeersDAO initPeersDB() {
+        return new PeersDAOSQLLite();
     }
 
 }
