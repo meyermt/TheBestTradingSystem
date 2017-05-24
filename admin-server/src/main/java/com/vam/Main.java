@@ -42,7 +42,7 @@ public class Main {
             new Thread(new PeerServer(peerServer, peersDB)).start();
             logger.info("Running trader port on {}", ports.get(TRADER_PORT));
             ServerSocket traderServer = new ServerSocket(ports.get(TRADER_PORT));
-            new Thread(new TraderServer(traderServer, stocksDB)).start();
+            new Thread(new TraderServer(traderServer, stocksDB, peersDB)).start();
         } catch (IOException e) {
             throw new RuntimeException("Unable to load new server.", e);
         }
