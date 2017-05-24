@@ -1,6 +1,6 @@
 package com.vam.dao;
 
-import com.vam.bean.Peer;
+import com.vam.json.Peer;
 
 import java.util.List;
 

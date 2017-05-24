@@ -1,6 +1,6 @@
 package com.vam.dao;
 
-import com.vam.bean.Peer;
+import com.vam.json.Peer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +77,7 @@ public class PeersDAOSQLLite implements PeersDAO {
 
     private List<Peer> getPeerOneWhere(String sql, String clause) {
         try (Connection conn = this.connect(DB_NAME);
-             PreparedStatement pstmt  = conn.prepareStatement(sql)){
+            PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1, clause);
             ResultSet rs    = pstmt.executeQuery(sql);
 

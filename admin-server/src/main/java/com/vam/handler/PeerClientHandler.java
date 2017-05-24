@@ -1,5 +1,6 @@
 package com.vam.handler;
 
+import com.vam.dao.PeersDAO;
 import com.vam.server.TraderServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,11 @@ public class PeerClientHandler implements Runnable {
 
     private Logger logger = LoggerFactory.getLogger(PeerClientHandler.class);
     private Socket client;
+    private PeersDAO peersDB;
 
-    public PeerClientHandler(Socket client) {
+    public PeerClientHandler(Socket client, PeersDAO peersDB) {
         this.client = client;
+        this.peersDB = peersDB;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.vam.dao;
 
-import com.vam.bean.Stock;
+import com.vam.json.Stock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

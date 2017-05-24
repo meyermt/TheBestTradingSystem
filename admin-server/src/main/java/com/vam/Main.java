@@ -32,17 +32,17 @@ public class Main {
      */
     public static void main(String[] args) {
         logger.info("Initializing admin-server");
-        StocksDAO stocksDao = initStocksDB();
-        //PeersDAO peersDB = initPeersDB();
-        stocksDao.getAllStocks().forEach(stock -> logger.info("stock is {}", stock.toString()));
+        StocksDAO stocksDB = initStocksDB();
+        PeersDAO peersDB = initPeersDB();
+        stocksDB.getAllStocks().forEach(stock -> logger.info("stock is {}", stock.toString()));
         Map<String, Integer> ports = loadPortOpts(args);
         try {
             logger.info("Running peer port on {}", ports.get(PEER_PORT));
             ServerSocket peerServer = new ServerSocket(ports.get(PEER_PORT));
-            new Thread(new PeerServer(peerServer)).start();
+            new Thread(new PeerServer(peerServer, peersDB)).start();
             logger.info("Running trader port on {}", ports.get(TRADER_PORT));
             ServerSocket traderServer = new ServerSocket(ports.get(TRADER_PORT));
-            new Thread(new TraderServer(traderServer)).start();
+            new Thread(new TraderServer(traderServer, stocksDB)).start();
         } catch (IOException e) {
             throw new RuntimeException("Unable to load new server.", e);
         }
@@ -50,7 +50,7 @@ public class Main {
 
     private static Map<String, Integer> loadPortOpts(String[] args) {
         Options options = new Options();
-        Option traderOpt = new Option("tp", TRADER_PORT, true, "Trader listening port to run on");
+        Option traderOpt = new Option("tp", TRADER_PORT, true, "TraderRequest listening port to run on");
         Option peerOpt = new Option("pp", PEER_PORT, true, "Peer listening port to run on");
         traderOpt.setRequired(true);
         peerOpt.setRequired(true);

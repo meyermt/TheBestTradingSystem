@@ -1,4 +1,4 @@
-package com.vam.bean;
+package com.vam.json;
 
 /**
  * Created by michaelmeyer on 5/13/17.
