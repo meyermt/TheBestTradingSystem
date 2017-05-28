@@ -21,6 +21,7 @@ public class TraderClientHandler implements Runnable{
 
     private Logger logger = LoggerFactory.getLogger(TraderClientHandler.class);
     public Socket client;
+    private boolean exit;
 
     /**
      * Instantiates new trader client handler.

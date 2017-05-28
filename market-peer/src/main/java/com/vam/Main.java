@@ -1,3 +1,6 @@
+/**
+ * Program driver for Market-Peer com.vam.server module.  listens on three com.vam.server threads
+ */
 package com.vam;
 
 import org.slf4j.Logger;
@@ -11,8 +14,7 @@ public class Main {
     private static Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
-        System.out.println("Hey you're running the market peer!");
-        logger.info("You should see me log for market peer!");
+        logger.info("Initializing Market-Peer");
     }
 
 }

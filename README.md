@@ -13,7 +13,7 @@ Same as you would any other project. Just run the main class from within Intelli
 
 **From Command Line**
 
-1. From inside the `TheBestTradingSystem` dir, run `./gradlew :<sub-module>:shadowJar` (e.g., `./gradlew :admin-server:shadowJar`). If you are building on a Windows command line, run `gradlew :<sub-module>:shadowJar`. This builds a JAR of the project that contains all of the source and dependency JARs. It places the JAR in `./<sub-module>/build/libs/<sub-module>-all.jar`.
+1. From inside the `TheBestTradingSystem` dir, run `./gradlew :<sub-module>:shadowJar` (e.g., `./gradlew :admin-com.vam.server:shadowJar`). If you are building on a Windows command line, run `gradlew :<sub-module>:shadowJar`. This builds a JAR of the project that contains all of the source and dependency JARs. It places the JAR in `./<sub-module>/build/libs/<sub-module>-all.jar`.
 2. Run the sub-module with `java -jar <sub-module>/libs/<sub-module>-all.jar` (e.g., `java -jar trader/build/libs/trader-all.jar`). This makes each module pretty portable, as you can just copy the `-all.jar` around wherever you would like to run it.
 
 ## Refreshing Project in IntelliJ
@@ -32,7 +32,7 @@ Explains structure of project and what some files are used for.
 
 **gradle directory** The gradle directory houses components used for the Gradle wrapper. Basically, it tells the `gradlew` or `gradlew.bat` (depending on if you are building on Unix or Windows) which version of Gradle to use and where to get that version.
 
-**admin-server, market-peer, and trader directories** These are the sub-modules within the larger project. For our purposes, you can think of each one of these as being their own individual project. See directions for how to build each one to be able to actually run them.
+**admin-com.vam.server, market-peer, and trader directories** These are the sub-modules within the larger project. For our purposes, you can think of each one of these as being their own individual project. See directions for how to build each one to be able to actually run them.
 
 ### Notes on Files
 
