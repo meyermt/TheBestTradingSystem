@@ -20,7 +20,7 @@ public class TraderServer implements Runnable {
     private boolean exit;
 
     /**
-     * Instantiates a new trader server.
+     * Instantiates a new trader com.vam.server.
      * @param traderServer ServerSocket that listens for trader connections
      */
     public TraderServer(ServerSocket traderServer) {
@@ -41,7 +41,7 @@ public class TraderServer implements Runnable {
     }
 
     /**
-     * Custom method to stop the server.
+     * Custom method to stop the com.vam.server.
      */
     public void stopServer() {
         exit = true;

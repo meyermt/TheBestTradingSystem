@@ -19,7 +19,7 @@ public class PeerServer implements Runnable {
     private boolean exit;
 
     /**
-     * Instantiates new peer server.
+     * Instantiates new peer com.vam.server.
      * @param peerServer ServerSocket for listening to peer requests
      */
     public PeerServer(ServerSocket peerServer) {
@@ -40,7 +40,7 @@ public class PeerServer implements Runnable {
     }
 
     /**
-     * Custom method to stop the server.
+     * Custom method to stop the com.vam.server.
      */
     public void stopServer() {
         exit = true;

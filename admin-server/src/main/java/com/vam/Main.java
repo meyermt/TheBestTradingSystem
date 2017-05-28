@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Main driver for admin server module. Takes two ports as arguments and uses them to run two listening
- * server threads.
+ * Main driver for admin com.vam.server module. Takes two ports as arguments and uses them to run two listening
+ * com.vam.server threads.
  * Created by michaelmeyer on 5/1/17.
  */
 public class Main {
@@ -24,10 +24,10 @@ public class Main {
 
     /**
      * Takes port string args, starts two servers.
-     * @param args server options/arguments
+     * @param args com.vam.server options/arguments
      */
     public static void main(String[] args) {
-        logger.info("Initializing admin-server");
+        logger.info("Initializing admin-com.vam.server");
         Map<String, Integer> ports = loadPortOpts(args);
         try {
             logger.info("Running peer port on {}", ports.get(PEER_PORT));
@@ -37,7 +37,7 @@ public class Main {
             ServerSocket traderServer = new ServerSocket(ports.get(TRADER_PORT));
             new Thread(new TraderServer(traderServer)).start();
         } catch (IOException e) {
-            throw new RuntimeException("Unable to load new server.", e);
+            throw new RuntimeException("Unable to load new com.vam.server.", e);
         }
     }
 
@@ -61,7 +61,7 @@ public class Main {
             ports.put(PEER_PORT, peer);
             return ports;
         } catch (ParseException e) {
-            formatter.printHelp("admin server help", options);
+            formatter.printHelp("admin com.vam.server help", options);
             throw new RuntimeException("Unable to read arguments, see help.");
         }
     }
