@@ -38,7 +38,7 @@ public class Peer extends ReceiverAdapter{
     protected boolean recover = false;
 
 
-    private ConcurrentHashMap.KeySetView<Address, Boolean> currentMembers = ConcurrentHashMap.newKeySet();
+    private ConcurrentHashMap.KeySetView<Address, Boolean> superPeerMap = ConcurrentHashMap.newKeySet();
     private ConcurrentHashMap<String, Stock> stockMap = new ConcurrentHashMap<>();
 
     protected JChannel channel;
@@ -105,8 +105,8 @@ public class Peer extends ReceiverAdapter{
 
         if(membersLeaving != null){
             for(Address address : membersLeaving){
-                if(currentMembers.contains(address)){
-                    currentMembers.remove(address);
+                if(superPeerMap.contains(address)){
+                    superPeerMap.remove(address);
                 }
 
             }
@@ -114,9 +114,10 @@ public class Peer extends ReceiverAdapter{
 
         if(membersJoining != null){
             for(Address address : membersJoining){
-                //If the peer is a super peer, the super peer add the member
-                if(isSuper == true){
-                    currentMembers.add(address);
+                //If the peer is a super peer, the super peer is added
+                //Hardcode a list of super peer logical name
+                if(this.channel.getName(address).equals("Continent-SuperPeer")){
+                    superPeerMap.add(address);
                 }
 
             }
