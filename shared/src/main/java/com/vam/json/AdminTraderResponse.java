@@ -5,23 +5,23 @@ import java.util.List;
 /**
  * Created by michaelmeyer on 5/23/17.
  */
-public class TraderResponse {
+public class AdminTraderResponse {
 
-    private TraderResponseCode code;
+    private AdminTraderResponseCode code;
     private String peerIP;
     private int peerPort;
     private List<Stock> stocks;
 
-    public TraderResponse() {};
+    public AdminTraderResponse() {};
 
-    public TraderResponse(TraderResponseCode code, String peerIP, int peerPort, List<Stock> stocks) {
+    public AdminTraderResponse(AdminTraderResponseCode code, String peerIP, int peerPort, List<Stock> stocks) {
         this.code = code;
         this.peerIP = peerIP;
         this.peerPort = peerPort;
         this.stocks = stocks;
     }
 
-    public TraderResponseCode getCode() {
+    public AdminTraderResponseCode getCode() {
         return code;
     }
 

@@ -63,6 +63,19 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
+    public List<Peer> getSuperPeers() {
+        String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
+                " WHERE super = 1";
+        try (Connection conn = this.connect(DB_NAME);
+             Statement stmt  = conn.createStatement();
+             ResultSet rs    = stmt.executeQuery(sql)){
+
+            return collectPeers(rs);
+        } catch (SQLException e) {
+            throw new RuntimeException("Unable to retrieve stocks in stock db.", e);
+        }
+    }
+
     public List<Peer> getContinentPeers(String continent) {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE continent = ?";
@@ -79,11 +92,35 @@ public class PeersDAOSQLLite implements PeersDAO {
         try (Connection conn = this.connect(DB_NAME);
             PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1, clause);
-            ResultSet rs    = pstmt.executeQuery(sql);
+            ResultSet rs    = pstmt.executeQuery();
 
             return collectPeers(rs);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to retrieve stocks in stock db.", e);
+        }
+    }
+
+    public void deleteMarketPeer(String market) {
+        String sql = "DELETE FROM " + DB_NAME + " WHERE market = ?";
+
+        try (Connection conn = this.connect(DB_NAME);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, market);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Unable to delete" + market + " from peers db.", e);
+        }
+    }
+
+    public void deleteContinentPeers(String continent) {
+        String sql = "DELETE FROM " + DB_NAME + " WHERE continent = ?";
+
+        try (Connection conn = this.connect(DB_NAME);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, continent);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Unable to delete" + continent + " from peers db.", e);
         }
     }
 

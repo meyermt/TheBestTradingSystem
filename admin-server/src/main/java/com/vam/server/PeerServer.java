@@ -35,6 +35,7 @@ public class PeerServer implements Runnable {
         try {
             while(!exit) {
                 Socket client = peerServer.accept();
+                System.out.println("heard something from someone peer");
                 new Thread(new PeerClientHandler(client, peersDB)).start();
             }
         } catch (IOException e) {

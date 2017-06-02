@@ -13,4 +13,8 @@ public interface PeersDAO {
     List<Peer> getAllPeers();
     List<Peer> getContinentPeers(String continent);
     List<Peer> getCountryPeers(String country);
+    List<Peer> getSuperPeers();
+    void deleteMarketPeer(String market);
+    void deleteContinentPeers(String continent);
+
 }

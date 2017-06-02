@@ -43,11 +43,10 @@ public class TraderClientHandler implements Runnable{
         try {
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-            // add API code here
-            // the below code is just for example, will change when API added.
+
             String clientInput = input.readLine();
             Gson gson = new Gson();
-            TraderRequest request = gson.fromJson(clientInput, TraderRequest.class);
+            TraderAdminRequest request = gson.fromJson(clientInput, TraderAdminRequest.class);
             processTraderReq(request);
             client.close();
         } catch (IOException e) {
@@ -56,27 +55,32 @@ public class TraderClientHandler implements Runnable{
         }
     }
 
-    private void processTraderReq(TraderRequest request) {
+    private void processTraderReq(TraderAdminRequest request) {
         Socket client = tryClient(request);
-        if (request.getAction() == TraderAction.LOGIN) {
+        if (request.getAction() == TraderAdminAction.LOGIN) {
             List<Peer> peers = peersDB.getCountryPeers(request.getCountry());
             if (peers.isEmpty()) {
-                TraderResponse response = new TraderResponse(TraderResponseCode.NO_AVAILABLE_PEER, "", 0, Collections.emptyList());
+                AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.NO_AVAILABLE_PEER, "", 0, Collections.emptyList());
                 sendResponse(client, response);
             } else  {
                 Random rn = new Random();
                 int peerNum = rn.nextInt(peers.size()); // randomize which peer to connect to in a country
                 Peer connectPeer = peers.get(peerNum);
                 List<Stock> stocks = stocksDB.getAllStocks();
-                TraderResponse response = new TraderResponse(TraderResponseCode.OK, connectPeer.getIp(), connectPeer.getPort(), stocks);
+                AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.OK, connectPeer.getIp(), connectPeer.getPort(), stocks);
                 sendResponse(client, response);
             }
-        } else if (request.getAction() == TraderAction.LOGOUT) {
+        } else if (request.getAction() == TraderAdminAction.LOGOUT) {
             // TODO: fill this in. Not sure when/if this is used.
+        } else if (request.getAction() == TraderAdminAction.PEER_FAILURE) {
+            peersDB.deleteMarketPeer(request.getFailedPeerMarket());
+            AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.OK, "", 0, Collections.emptyList());
+        } else {
+            AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.INVALID_ACTION, "", 0, Collections.emptyList());
         }
     }
 
-    private void sendResponse(Socket client, TraderResponse response) {
+    private void sendResponse(Socket client, AdminTraderResponse response) {
         try {
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
@@ -87,7 +91,7 @@ public class TraderClientHandler implements Runnable{
         }
     }
 
-    private Socket tryClient(TraderRequest request) {
+    private Socket tryClient(TraderAdminRequest request) {
         try {
             Socket client = new Socket(request.getSourceIP(), request.getSourcePort());
             return client;

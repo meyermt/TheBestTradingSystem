@@ -3,7 +3,6 @@ package com.vam.handler;
 import com.google.gson.Gson;
 import com.vam.dao.PeersDAO;
 import com.vam.json.*;
-import com.vam.server.TraderServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +39,7 @@ public class PeerClientHandler implements Runnable {
             // the below code is just for example, will change when API added.
             String clientInput = input.readLine();
             Gson gson = new Gson();
-            PeerRequest request = gson.fromJson(clientInput, PeerRequest.class);
+            PeerAdminRequest request = gson.fromJson(clientInput, PeerAdminRequest.class);
             processPeerReq(request);
             client.close();
         } catch (IOException e) {
@@ -49,29 +48,32 @@ public class PeerClientHandler implements Runnable {
         }
     }
 
-    private void processPeerReq(PeerRequest request) {
+    private void processPeerReq(PeerAdminRequest request) {
+        System.out.println("request is : " + request.toString());
         Socket client = tryClient(request);
-        if (request.getAction() == PeerAction.ENTER_NETWORK) {
-            List<Peer> peers = peersDB.getContinentPeers(request.getContinent());
-            peersDB.insertPeer(request.getSourceIP(), request.getSourcePort(), request.getContinent(), request.getCountry(), request.getMarket(), false);
-            if (peers.isEmpty()) {
-                PeerResponse response = new PeerResponse(PeerResponseCode.NO_NETWORK, Collections.emptyList(), Collections.emptyList());
-                sendResponse(client, response);
-            } else {
-                PeerResponse response = new PeerResponse(PeerResponseCode.OK, peers, Collections.emptyList());
-                sendResponse(client, response);
-            }
-        } else if (request.getAction() == PeerAction.ENTER_SP_NETWORK) {
-            //List<Peer> superpeers = peersDB.getSuperPeers();
-            // TODO: Need to add query (above) for sp's
-
-        } else if (request.getAction() == PeerAction.NEW_SP) {
-            // TODO: Need to add queries to undo existing SP (potentially wipe out entry of existing) and then update or just reinsert new SP
+        if (request.getAction() == PeerAdminAction.REGISTER_NETWORK) { // new network, so just wipe out old entries and add all new AND send back sps to superpeer
+            peersDB.deleteContinentPeers(request.getContinent()); // wipe out old local peer network
+            List<Peer> superPeers = peersDB.getSuperPeers(); // collect remaining superpeers
+            request.getPeers().forEach(peer ->{
+                // TODO: need to confirm that the super peer will NOT send themselves in this list of peers in their registered network
+                peersDB.insertPeer(peer.getIp(), peer.getPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
+            });
+            peersDB.insertPeer(request.getSourceIP(), request.getSourcePort(), request.getContinent(), request.getCountry(), request.getMarket(), true);// assumes sp doesn't send themselves in list
+            AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, superPeers);
+            sendResponse(client, response);
+        } else if (request.getAction() == PeerAdminAction.ADD_PEER) {
+            System.out.println("got to add peer");
+            request.getPeers().forEach(peer ->{
+                peersDB.insertPeer(peer.getIp(), peer.getPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
+            });
+        } else if (request.getAction() == PeerAdminAction.DELETE_PEER) {
+            request.getPeers().forEach(peer ->{
+                peersDB.deleteMarketPeer(peer.getMarket());
+            });
         }
-        // TODO: Need another API entry for removing nodes. If nodes detect other nodes down should be reported
     }
 
-    private void sendResponse(Socket client, PeerResponse response) {
+    private void sendResponse(Socket client, AdminPeerResponse response) {
         try {
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
@@ -82,7 +84,7 @@ public class PeerClientHandler implements Runnable {
         }
     }
 
-    private Socket tryClient(PeerRequest request) {
+    private Socket tryClient(PeerAdminRequest request) {
         try {
             Socket client = new Socket(request.getSourceIP(), request.getSourcePort());
             return client;

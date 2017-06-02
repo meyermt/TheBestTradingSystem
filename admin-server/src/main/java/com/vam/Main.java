@@ -34,7 +34,6 @@ public class Main {
         logger.info("Initializing admin-server");
         StocksDAO stocksDB = initStocksDB();
         PeersDAO peersDB = initPeersDB();
-        stocksDB.getAllStocks().forEach(stock -> logger.info("stock is {}", stock.toString()));
         Map<String, Integer> ports = loadPortOpts(args);
         try {
             logger.info("Running peer port on {}", ports.get(PEER_PORT));
@@ -50,7 +49,7 @@ public class Main {
 
     private static Map<String, Integer> loadPortOpts(String[] args) {
         Options options = new Options();
-        Option traderOpt = new Option("tp", TRADER_PORT, true, "TraderRequest listening port to run on");
+        Option traderOpt = new Option("tp", TRADER_PORT, true, "TraderAdminRequest listening port to run on");
         Option peerOpt = new Option("pp", PEER_PORT, true, "Peer listening port to run on");
         traderOpt.setRequired(true);
         peerOpt.setRequired(true);

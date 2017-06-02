@@ -3,20 +3,22 @@ package com.vam.json;
 /**
  * Created by michaelmeyer on 5/9/17.
  */
-public class TraderRequest {
+public class TraderAdminRequest {
 
     private String sourceIP;
     private int sourcePort;
-    private TraderAction action;
+    private TraderAdminAction action;
     private String country;
+    private String failedPeerMarket;
 
-    public TraderRequest() {}
+    public TraderAdminRequest() {}
 
-    public TraderRequest(String sourceIP, int sourcePort, TraderAction action, String country) {
+    public TraderAdminRequest(String sourceIP, int sourcePort, TraderAdminAction action, String country, String failedPeerMarket) {
         this.sourceIP = sourceIP;
         this.sourcePort = sourcePort;
         this.action = action;
         this.country = country;
+        this.failedPeerMarket = failedPeerMarket;
     }
 
     public String getSourceIP() {
@@ -27,11 +29,15 @@ public class TraderRequest {
         return sourcePort;
     }
 
-    public TraderAction getAction() {
+    public TraderAdminAction getAction() {
         return action;
     }
 
     public String getCountry() {
         return country;
+    }
+
+    public String getFailedPeerMarket() {
+        return failedPeerMarket;
     }
 }

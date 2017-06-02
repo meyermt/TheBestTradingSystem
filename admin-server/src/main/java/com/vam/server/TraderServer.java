@@ -39,6 +39,7 @@ public class TraderServer implements Runnable {
         try {
             while(!exit) {
                 Socket client = traderServer.accept();
+                System.out.println("heard something from someone");
                 new Thread(new TraderClientHandler(client, stocksDB, peersDB)).start();
             }
         } catch (IOException e) {
