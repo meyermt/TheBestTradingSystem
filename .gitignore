@@ -22,10 +22,17 @@ gradle-app.setting
 # All idea folder files
 .idea/*
 
+# IPR file
+*.ipr
+
 # User-specific stuff:
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/dictionaries
+
+# iml files
+*.iml
+./**/*.iml
 
 # Sensitive or high-churn files:
 .idea/**/dataSources/
@@ -68,3 +75,11 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# sqllite
+*.db
+./**/*.db
+
+# price file
+*.csv
+

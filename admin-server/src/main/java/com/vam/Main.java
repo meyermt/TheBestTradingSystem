@@ -1,5 +1,9 @@
 package com.vam;
 
+import com.vam.dao.PeersDAO;
+import com.vam.dao.PeersDAOSQLLite;
+import com.vam.dao.StocksDAO;
+import com.vam.dao.StocksDAOSQLLite;
 import com.vam.server.PeerServer;
 import com.vam.server.TraderServer;
 import org.apache.commons.cli.*;
@@ -28,14 +32,16 @@ public class Main {
      */
     public static void main(String[] args) {
         logger.info("Initializing admin-server");
+        StocksDAO stocksDB = initStocksDB();
+        PeersDAO peersDB = initPeersDB();
         Map<String, Integer> ports = loadPortOpts(args);
         try {
             logger.info("Running peer port on {}", ports.get(PEER_PORT));
             ServerSocket peerServer = new ServerSocket(ports.get(PEER_PORT));
-            new Thread(new PeerServer(peerServer)).start();
+            new Thread(new PeerServer(peerServer, peersDB)).start();
             logger.info("Running trader port on {}", ports.get(TRADER_PORT));
             ServerSocket traderServer = new ServerSocket(ports.get(TRADER_PORT));
-            new Thread(new TraderServer(traderServer)).start();
+            new Thread(new TraderServer(traderServer, stocksDB, peersDB)).start();
         } catch (IOException e) {
             throw new RuntimeException("Unable to load new server.", e);
         }
@@ -43,7 +49,7 @@ public class Main {
 
     private static Map<String, Integer> loadPortOpts(String[] args) {
         Options options = new Options();
-        Option traderOpt = new Option("tp", TRADER_PORT, true, "Trader listening port to run on");
+        Option traderOpt = new Option("tp", TRADER_PORT, true, "TraderAdminRequest listening port to run on");
         Option peerOpt = new Option("pp", PEER_PORT, true, "Peer listening port to run on");
         traderOpt.setRequired(true);
         peerOpt.setRequired(true);
@@ -64,6 +70,14 @@ public class Main {
             formatter.printHelp("admin server help", options);
             throw new RuntimeException("Unable to read arguments, see help.");
         }
+    }
+
+    private static StocksDAO initStocksDB() {
+        return new StocksDAOSQLLite();
+    }
+
+    private static PeersDAO initPeersDB() {
+        return new PeersDAOSQLLite();
     }
 
 }
