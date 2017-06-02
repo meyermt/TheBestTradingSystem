@@ -27,6 +27,7 @@ allprojects {
         compile 'com.google.code.gson:gson:2.8.0'
         compile 'org.xerial:sqlite-jdbc:3.16.1'
         compile 'com.fasterxml.jackson.core:jackson-databind:2.8.8'
+        compile 'org.jgroups:jgroups:3.6.13.Final'
         runtime 'ch.qos.logback:logback-classic:1.2.2'
         testCompile 'junit:junit:4.12'
     }
