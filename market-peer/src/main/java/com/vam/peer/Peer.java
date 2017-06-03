@@ -1,5 +1,10 @@
-package com.vam.json;
+package com.vam.peer;
 
+import com.vam.handler.TraderRequestHandler;
+import com.vam.json.PeerRequest;
+import com.vam.json.PeerResponse;
+import com.vam.json.Stock;
+import com.vam.json.TraderAction;
 import org.jgroups.JChannel;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
