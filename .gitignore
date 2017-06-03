@@ -81,5 +81,5 @@ fabric.properties
 ./**/*.db
 
 # price file
-#*.csv
+*.csv
 
