@@ -396,61 +396,6 @@ public class Peer extends ReceiverAdapter {
     }
 
     public static void main(String[] args){
-//        String[] inputs = new String[6];
-        //Parse command lines
-//        if (args.length == 7) {
-//
-//            if (!args[0].contains("=") || !args[1].contains("=") || !args[2].contains("=")
-//                    || !args[3].contains("=") || !args[4].contains("=") || !args[5].contains("=")
-//                    || !args[6].contains("=")) {
-//                throw new IllegalArgumentException("Command Line Argument is in wrong format, " +
-//                        "java Peer --port=1000 --continent=america --country=USA --market=new_york --qtyFile=qty_stocks.csv" +
-//                        "--priceFile=price_stocks.csv --recover=false");
-//            } else {
-//
-//                String[] split1 = args[0].split("=");
-//                String command1 = split1[0];
-//                String[] split2 = args[1].split("=");
-//                String command2 = split2[0];
-//                String[] split3 = args[1].split("=");
-//                String command3 = split3[0];
-//                String[] split4 = args[0].split("=");
-//                String command4 = split4[0];
-//                String[] split5 = args[1].split("=");
-//                String command5 = split5[0];
-//                String[] split6= args[1].split("=");
-//                String command6 = split6[0];
-//                String[] split7= args[1].split("=");
-//                String command7 = split7[0];
-//
-//
-//                if (!command1.equals("--port") || !command2.equals("--continent") || !command3.equals("--market")
-//                        ||!command1.equals("--qtyFile") || !command2.equals("--priceFile") || !command3.equals("--recover") ) {
-//
-//                    throw new IllegalArgumentException("Command Line Argument is in wrong format, " +
-//                            "java Peer --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
-//                            "--priceFile=price_stocks.csv --recover=false");
-//
-//
-//                }
-//
-//                inputs[0] = split1[1];
-//                inputs[1] = split2[1];
-//                inputs[2] = split3[1];
-//                inputs[3] = split4[1];
-//                inputs[4] = split5[1];
-//                inputs[5] = split6[1];
-//
-//            }
-//
-//
-//        } else {
-//
-//            throw new IllegalArgumentException("Command Line Argument is in wrong format, " +
-//                    "java Peer --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
-//                    "--priceFile=price_stocks.csv --recover=false");
-//
-//        }
         Map<String, String> peerOpts = loadPeerOpts(args);
         Peer peer = new Peer(Integer.parseInt(peerOpts.get(PORT_ARG)), peerOpts.get(CONTINENT_ARG), peerOpts.get(COUNTRY_ARG),
                 peerOpts.get(MARKET_ARG), peerOpts.get(QUANT_FILE_ARG), peerOpts.get(PRICE_FILE_ARG));
