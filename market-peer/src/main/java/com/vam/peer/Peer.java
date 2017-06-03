@@ -3,14 +3,11 @@ package com.vam.peer;
 import com.vam.handler.TraderRequestHandler;
 import com.vam.json.*;
 import org.apache.commons.cli.*;
-import org.jgroups.JChannel;
-import org.jgroups.ReceiverAdapter;
-import org.jgroups.View;
+import org.jgroups.*;
 import org.jgroups.blocks.RpcDispatcher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jgroups.Address;
 
 
 import java.io.*;
@@ -27,7 +24,7 @@ import java.net.*;
  */
 
 
-public class Peer extends ReceiverAdapter{
+public class Peer extends ReceiverAdapter {
 
     //options - args
     private static final String PORT_ARG = "port";
@@ -329,10 +326,28 @@ public class Peer extends ReceiverAdapter{
         Address address = view.getMembers().get(0);
         if (address.equals(channel.getAddress()) && !isSuper) { // implies a super has gone down and this peer is now top of list/super
             isSuper = true;
+
             Socket adminClient = tryClient(ADMIN_IP, ADMIN_PORT);
-            PeerAdminRequest request = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, this.continent, );
+            PeerAdminRequest request = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, this.continent, this.country, this.market,
+                    );
         }
     }
+
+    public void receive(Message msg) {
+        try {
+            PeerPeerMessage peerMessage = (PeerPeerMessage) msg.getObject();
+            if (peerMessage.getAction() == PeerPeerAction.MEMBERSHIP_REQ) { // this means a new super wants to know we are alive
+                // TODO: construct a new peer message to respond with
+                // TODO: Message constructor should include src and dest Address in this case. and of course new peer message
+                //Message response = new Message();
+                channel.send(response);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Something went wrong sending message to peer", e);
+        }
+    }
+
+    public static void requestGroupMembership()
 
     public static Socket tryClient(String ip, int port) {
 
