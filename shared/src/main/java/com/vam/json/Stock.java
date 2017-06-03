@@ -18,6 +18,7 @@ public class Stock {
     private String stock;
     private double price = 0.0;
     private int shares = 0;
+    private boolean isFund;
     //Each stock has a list of issues and a list of price updates
     private ArrayList<Issue> issues = new ArrayList<>();
     private ArrayList<Price> prices = new ArrayList<>();
@@ -37,11 +38,12 @@ public class Stock {
      * @param market
      * @param stock
      */
-    public Stock(String continent, String country, String market, String stock) {
+    public Stock(String continent, String country, String market, String stock,boolean fund) {
         this.continent = continent;
         this.country = country;
         this.market = market;
         this.stock = stock;
+        this.isFund=fund;
     }
 
 
