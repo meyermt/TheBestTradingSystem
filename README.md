@@ -1,6 +1,12 @@
 # TheBestTradingSystem
 Arguably the best and fastest trading system in the world.
 
+## Admin Server Backup Strategy
+
+The admin server creates backups of the peer database every time a non-read-only operation is invoked on the database. In this way, the "copy" of the existing trading system network can be given to another copy of the admin server if the original admin server goes down for any reason.
+
+The default offering of this backup stores copies in a local "backup" dir, so it should be changed before moving code to production.
+
 ## How to Import this into IntelliJ
 
 Follow [directions from IntelliJ](https://www.jetbrains.com/help/idea/2017.1/importing-a-gradle-project-or-a-gradle-module.html) for Importing a Project from a Gradle Model. You should select the option that says "Use Gradle wrapper task configuration" when you get to that point in importing.

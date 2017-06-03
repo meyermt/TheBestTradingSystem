@@ -5,11 +5,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Implementation of PeersDAO using SQLLite
  * Created by michaelmeyer on 5/13/17.
  */
 public class PeersDAOSQLLite implements PeersDAO {
@@ -17,11 +23,24 @@ public class PeersDAOSQLLite implements PeersDAO {
     private Logger logger = LoggerFactory.getLogger(PeersDAOSQLLite.class);
     private static final String DB_NAME = "peers";
     private static final String PEERS_DB_FILE = "peers.db";
+    private static final String BACKUP_DIR = "backup";
+    private final Path backupFile;
+    private final File dbFile;
 
+    /**
+     * New Peers DB is created if it doesn't already exist
+     */
     public PeersDAOSQLLite() {
-        File db = new File("./" + PEERS_DB_FILE);
-        if (!db.isFile()) { // need to create a new db
+        File backupDir = new File("backup");
+        dbFile = new File("./" + PEERS_DB_FILE);
+        backupFile = Paths.get(BACKUP_DIR, PEERS_DB_FILE);
+        if (!dbFile.isFile()) { // need to create a new db
             initNewDBAndTable();
+        }
+        // check if our backup dir exists or not
+        if (!backupDir.isDirectory()) {
+            logger.info("creating backup dir");
+            backupDir.mkdir();
         }
     }
 
@@ -46,8 +65,12 @@ public class PeersDAOSQLLite implements PeersDAO {
             pstmt.setString(5, market);
             pstmt.setBoolean(6, isSuper);
             pstmt.executeUpdate();
+            logger.info("backing up peer database");
+            Files.copy(dbFile.toPath(), backupFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to insert" + market + " into peer db.", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to save backup copy of database after insertPeer", e);
         }
     }
 
@@ -82,6 +105,11 @@ public class PeersDAOSQLLite implements PeersDAO {
         return getPeerOneWhere(sql, continent);
     }
 
+    /**
+     *
+     * @param country
+     * @return
+     */
     public List<Peer> getCountryPeers(String country) {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE country = ?";
@@ -107,8 +135,12 @@ public class PeersDAOSQLLite implements PeersDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, market);
             pstmt.executeUpdate();
+            logger.info("backing up peer database");
+            Files.copy(dbFile.toPath(), backupFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to delete" + market + " from peers db.", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to save backup copy of database after deleteMarketPeer", e);
         }
     }
 
@@ -119,8 +151,12 @@ public class PeersDAOSQLLite implements PeersDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, continent);
             pstmt.executeUpdate();
+            logger.info("backing up peer database");
+            Files.copy(dbFile.toPath(), backupFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to delete" + continent + " from peers db.", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to save backup copy of database after deleteContinentPeer", e);
         }
     }
 

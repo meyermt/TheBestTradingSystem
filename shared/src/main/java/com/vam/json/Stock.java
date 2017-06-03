@@ -1,6 +1,7 @@
 package com.vam.json;
 
 /**
+ * Bean representing a stock in the trading system
  * Created by michaelmeyer on 5/13/17.
  */
 public class Stock {
