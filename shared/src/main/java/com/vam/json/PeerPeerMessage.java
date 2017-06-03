@@ -16,10 +16,12 @@ public class PeerPeerMessage {
     private int targetPort;
     private String market;
 
-    public PeerPeerMessage(PeerPeerAction action, String sourceIP, int sourcePort, String targetIP, int targetPort, String market) {
+    public PeerPeerMessage(PeerPeerAction action, Address sourceAddr, String sourceIP, int sourcePort, Address targetAddr, String targetIP, int targetPort, String market) {
         this.action = action;
+        this.sourceAddr = sourceAddr;
         this.sourceIP = sourceIP;
         this.sourcePort = sourcePort;
+        this.targetAddr = targetAddr;
         this.targetIP = targetIP;
         this.targetPort = targetPort;
         this.market = market;
@@ -29,8 +31,10 @@ public class PeerPeerMessage {
     public String toString() {
         return "PeerPeerMessage{" +
                 "action=" + action +
+                ", sourceAddr=" + sourceAddr +
                 ", sourceIP='" + sourceIP + '\'' +
                 ", sourcePort=" + sourcePort +
+                ", targetAddr=" + targetAddr +
                 ", targetIP='" + targetIP + '\'' +
                 ", targetPort=" + targetPort +
                 ", market='" + market + '\'' +
@@ -59,5 +63,13 @@ public class PeerPeerMessage {
 
     public String getMarket() {
         return market;
+    }
+
+    public Address getSourceAddr() {
+        return sourceAddr;
+    }
+
+    public Address getTargetAddr() {
+        return targetAddr;
     }
 }

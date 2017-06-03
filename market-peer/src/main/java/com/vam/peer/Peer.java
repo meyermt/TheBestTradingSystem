@@ -1,5 +1,6 @@
 package com.vam.peer;
 
+import com.google.gson.Gson;
 import com.vam.handler.TraderRequestHandler;
 import com.vam.json.*;
 import org.apache.commons.cli.*;
@@ -34,16 +35,20 @@ public class Peer extends ReceiverAdapter {
     private static final String QUANT_FILE_ARG = "qtyFile";
     private static final String PRICE_FILE_ARG = "priceFile";
     private static final String RECOVER_ARG = "recover";
+    private static final String MY_IP = "127.0.0.1";
 
     private static final Logger logger = LoggerFactory.getLogger(Peer.class);
     private static DateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm");
     private static String ADMIN_IP = "127.0.0.1"; // yes, we would never do this if we weren't running just locally
     private static int ADMIN_PORT = 8090;
+    private static List<PeerData> peerNetwork = Collections.emptyList();
+    private static List<PeerData> superpeerNetwork = Collections.emptyList();
+    private static PeerData mySuper = null;
 
-    protected int port;
+    protected static int port;
     protected String continent;
     protected String country;
-    protected String market;
+    protected static String market;
     protected static boolean isSuper;
     protected String qtyFile;
     protected String priceFile;
@@ -53,7 +58,7 @@ public class Peer extends ReceiverAdapter {
     private ConcurrentHashMap.KeySetView<Address, Boolean> superPeerMap = ConcurrentHashMap.newKeySet();
     private ConcurrentHashMap<String, Stock> stockMap = new ConcurrentHashMap<>();
 
-    protected JChannel channel;
+    protected static JChannel channel;
     protected View view;
     protected RpcDispatcher rpcDispatcher;
 
@@ -96,9 +101,6 @@ public class Peer extends ReceiverAdapter {
     public void setRecover(boolean recover){
         this.recover = recover;
     }
-
-
-
 
     @Override
     public void viewAccepted(View newView){
@@ -288,7 +290,7 @@ public class Peer extends ReceiverAdapter {
 
 
     public void start(){
-        //Look for super peer
+        //Look for super peer.
         if (!isSuper) {
             lookForSuperPeer();
         }
@@ -326,12 +328,14 @@ public class Peer extends ReceiverAdapter {
         Address address = view.getMembers().get(0);
         if (address.equals(channel.getAddress()) && !isSuper) { // implies a super has gone down and this peer is now top of list/super
             isSuper = true;
-            requestGroupMembership();
+            requestGroupMembership(address);
             // TODO: Need to wait and then have the peer messaging update a class field of some sort that will always get sent in the admin client req
             waitFiveSecs();
             Socket adminClient = tryClient(ADMIN_IP, ADMIN_PORT);
             PeerAdminRequest request = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, this.continent, this.country, this.market,
-                    );
+                    this.peerNetwork, MY_IP, port);
+
+
         }
     }
 
@@ -346,27 +350,49 @@ public class Peer extends ReceiverAdapter {
     public void receive(Message msg) {
         try {
             PeerPeerMessage peerMessage = (PeerPeerMessage) msg.getObject();
+
             if (peerMessage.getAction() == PeerPeerAction.MEMBERSHIP_REQ) { // this means a new super wants to know we are alive
-                // TODO: construct a new peer message to respond with
-                // TODO: Message constructor should include src and dest Address in this case. and of course new peer message
-                //Message response = new Message();
+                PeerPeerMessage respMessage = new PeerPeerMessage(PeerPeerAction.MEMBERSHIP_RESP, null, MY_IP, port,
+                        peerMessage.getSourceAddr(), peerMessage.getSourceIP(), peerMessage.getSourcePort(), market);
+                Message response = new Message(peerMessage.getSourceAddr(), respMessage);
                 channel.send(response);
+            } else if (peerMessage.getAction() == PeerPeerAction.MEMBERSHIP_RESP && isSuper) {
+
             }
         } catch (Exception e) {
             throw new RuntimeException("Something went wrong sending message to peer", e);
         }
     }
 
-    public static void requestGroupMembership() {
-
+    public static void requestGroupMembership(Address myAddress) {
+        try {
+            PeerPeerMessage peerMessage = new PeerPeerMessage(PeerPeerAction.MEMBERSHIP_REQ, myAddress, MY_IP, port, null, "", 0,
+                    market);
+            Message memberMessage = new Message(null, myAddress, peerMessage);
+            channel.send(memberMessage);
+        } catch (Exception e) {
+            throw new RuntimeException("Something went wrong sending message out on channel", e);
+        }
     }
 
     public static Socket tryClient(String ip, int port) {
-
+        try {
+            Socket client = new Socket(ip, port);
+            return client;
+        } catch (IOException e) {
+            logger.error("Unable to secure connection at {} ip and {} port.", ip, port);
+            throw new RuntimeException(e);
+        }
     }
 
     public static AdminPeerResponse sendAdmin(Socket adminClient, PeerAdminRequest request) {
-
+        try {
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(adminClient.getOutputStream(), true);
+            output.println(gson.toJson(request));
+        } catch (IOException e) {
+            throw new RuntimeException("Error sending response to trader", e);
+        }
     }
 
     public static void main(String[] args){
