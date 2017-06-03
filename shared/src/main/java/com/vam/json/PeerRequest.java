@@ -1,12 +1,11 @@
 package com.vam.json;
 
-import java.io.*;
 import java.util.Date;
 
 /**
  * PeerRequest class renders and updates a request from the client and peer
  */
-public class PeerRequest implements Serializable{
+public class PeerRequest{
 
     private Date date;
     private String trader;

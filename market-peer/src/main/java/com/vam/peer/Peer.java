@@ -37,6 +37,7 @@ public class Peer{
 
     private static final Logger logger = LoggerFactory.getLogger(Peer.class);
     private static DateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm");
+    private static final ExecutorService pool = Executors.newFixedThreadPool(5);
 
     private static String ADMIN_IP = "127.0.0.1"; // yes, we would never do this if we weren't running just locally
     private static int ADMIN_PORT = 8090;
@@ -44,6 +45,7 @@ public class Peer{
     private static List<PeerData> superpeerNetwork = Collections.emptyList();
 
     //private PeerData mySuper = null;
+
 
     private int port;
     private int superPort;
@@ -64,15 +66,55 @@ public class Peer{
 
     }
 
-    public
 
     public void registerWithSuperPeer(){
+            try {
+                ServerSocket serverSocket = new ServerSocket(superPort);
+                while (true) {
+                    Socket socket = serverSocket.accept();
+                    Gson gson = new Gson();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+                    PeerRequest = null;
+                    PeerRequest peerRequest = null;
+                    PeerResponse peerResponse = null;
+                    while (true) {
+                        //Get request from trader
+                        request = gson.fromJson(br.readLine(), TraderPeerRequest.class);
+
+                        peerRequest = new PeerRequest(request.getDate(),request.getTrader(),request.getAction(),
+                                request.getStock(),request.getShares());
+
+
+                        //Process request
+                        if(peerRequest.getAction() == TraderAction.CONSULT){
+                            peerResponse = peer.consult(peerRequest);
+                        } else {
+                            peerResponse = peer.transact(peerRequest);
+                        }
+
+                        TraderPeerResponse traderResponse = new TraderPeerResponse(peerResponse.isSucceed(),
+                                peerResponse.getAction(),peerResponse.getPrice());
+
+                        //Send back response
+                        pw.println(gson.toJson(traderResponse));
+
+                    }
+                    pool.submit(traderRequestHandler);
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
 
 
     }
 
 
-    public
+    public Map<String, Stock> getStockMap(){
+        return this.stockMap;
+    }
 
 
 
@@ -112,14 +154,9 @@ public class Peer{
     public void start(){
 
 
-        if(recover){
-            recover();
-        } else {
-            readQtyFile();
-            readPriceFile();
-            registerWithSuperPeer();
+        registerWithSuperPeer();
 
-        }
+
 
         ExecutorService pool = Executors.newCachedThreadPool();
         //Create thread with admin server

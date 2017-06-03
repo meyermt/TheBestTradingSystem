@@ -1,12 +1,12 @@
 package com.vam.json;
 
-import java.io.Serializable;
+
 import org.jgroups.Address;
 
 /**
  * PeerResponse class renders a response from the peer
  */
-public class PeerResponse implements Serializable{
+public class PeerResponse{
 
     private boolean succeed;
     private double price;
