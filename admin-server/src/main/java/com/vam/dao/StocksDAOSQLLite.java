@@ -21,10 +21,11 @@ public class StocksDAOSQLLite implements StocksDAO {
     private static final String DB_NAME = "stocks";
     private static final String STOCKS_DB_FILE = "stocks.db";
     private static final String STOCKS_CSV = "price_stocks.csv";
+    private final File dbFile;
 
     public StocksDAOSQLLite() {
-        File db = new File("./" + STOCKS_DB_FILE);
-        if (!db.isFile()) { // need to create a new db
+        dbFile = new File("./" + STOCKS_DB_FILE);
+        if (!dbFile.isFile()) { // need to create a new db
             initNewDBAndTable();
             File loadFile = new File("./" + STOCKS_CSV);
             if (loadFile.isFile()) {

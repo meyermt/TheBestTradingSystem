@@ -49,7 +49,6 @@ public class PeerClientHandler implements Runnable {
     }
 
     private void processPeerReq(PeerAdminRequest request) {
-        System.out.println("request is : " + request.toString());
         Socket client = tryClient(request);
         if (request.getAction() == PeerAdminAction.REGISTER_NETWORK) { // new network, so just wipe out old entries and add all new AND send back sps to superpeer
             peersDB.deleteContinentPeers(request.getContinent()); // wipe out old local peer network
@@ -62,14 +61,16 @@ public class PeerClientHandler implements Runnable {
             AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, superPeers);
             sendResponse(client, response);
         } else if (request.getAction() == PeerAdminAction.ADD_PEER) {
-            System.out.println("got to add peer");
             request.getPeers().forEach(peer ->{
                 peersDB.insertPeer(peer.getIp(), peer.getPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
             });
+            AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, Collections.emptyList());
+            sendResponse(client, response);
         } else if (request.getAction() == PeerAdminAction.DELETE_PEER) {
             request.getPeers().forEach(peer ->{
                 peersDB.deleteMarketPeer(peer.getMarket());
             });
+            AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, Collections.emptyList());
         }
     }
 
