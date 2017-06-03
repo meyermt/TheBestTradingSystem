@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -86,10 +87,14 @@ public class StocksDAOSQLLite implements StocksDAO {
     private void loadStocksInTable() {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(STOCKS_CSV));
-            String[] continents = reader.readLine().split(",");
-            String[] countries = reader.readLine().split(",");
-            String[] markets = reader.readLine().split(",");
-            String[] stocks = reader.readLine().split(",");
+            String[] rawContinents = reader.readLine().split(",");
+            String[] continents = Arrays.copyOfRange(rawContinents, 3, rawContinents.length);
+            String[] rawCountries = reader.readLine().split(",");
+            String[] countries = Arrays.copyOfRange(rawCountries, 3, rawCountries.length);
+            String[] rawMarkets = reader.readLine().split(",");
+            String[] markets = Arrays.copyOfRange(rawMarkets, 3, rawMarkets.length);
+            String[] rawStocks = reader.readLine().split(",");
+            String[] stocks = Arrays.copyOfRange(rawStocks, 3, rawStocks.length);
             insertStocks(continents, countries, markets, stocks);
             reader.close();
         } catch (IOException e) {
