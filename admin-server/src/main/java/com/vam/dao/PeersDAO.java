@@ -1,6 +1,6 @@
 package com.vam.dao;
 
-import com.vam.json.Peer;
+import com.vam.json.PeerData;
 
 import java.util.List;
 
@@ -25,21 +25,21 @@ public interface PeersDAO {
      * Gets all peers in the entire db
      * @return list of all peers
      */
-    List<Peer> getAllPeers();
+    List<PeerData> getAllPeers();
 
     /**
      * get all peers in a continent
      * @param continent continent to get peers for
      * @return list of all peers in continent
      */
-    List<Peer> getContinentPeers(String continent);
-    List<Peer> getCountryPeers(String country);
+    List<PeerData> getContinentPeers(String continent);
+    List<PeerData> getCountryPeers(String country);
 
     /**
      * gets all super peers in the entire db
      * @return list of all super peers
      */
-    List<Peer> getSuperPeers();
+    List<PeerData> getSuperPeers();
     void deleteMarketPeer(String market);
     void deleteContinentPeers(String continent);
 

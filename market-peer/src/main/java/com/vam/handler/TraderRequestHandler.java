@@ -1,9 +1,11 @@
-package com.vam.json;
+package com.vam.handler;
 
 import java.io.*;
 import java.net.Socket;
 
 import com.google.gson.*;
+import com.vam.json.*;
+import com.vam.peer.Peer;
 
 
 public class TraderRequestHandler implements Runnable {
