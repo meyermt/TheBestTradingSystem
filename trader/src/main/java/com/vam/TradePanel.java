@@ -1,15 +1,12 @@
 package com.vam;
 
-import images.SpriteTexLoader;
-import mvc.controller.Game;
-import mvc.model.HighScorePlace;
-import mvc.model.Sprite;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by ana_b on 5/12/2017.
@@ -17,15 +14,22 @@ import java.util.ArrayList;
 public class TradePanel extends JPanel{
 
     /**
-     * The current state of the game (Main Menu, Game, High Scores, Game Over
+     * The current state of the Trader (Login, Main Menu, Logout)
      */
-    private int ScreenState;
-
+    private int ScreenState=0;
+    private String mUsername;
+    private String mPassword;
+    private Map<String,String> mStock;
+    private int width=TradeFrame.FRAME_DIM.width;
+    private int height=TradeFrame.FRAME_DIM.height;
 
     public TradePanel() {
 
         this.setPreferredSize(TradeFrame.FRAME_DIM);
+        this.mStock=new HashMap<String,String>();
         ScreenState=0;
+        //mPanel = new JPanel();
+        //mPanel.setLayout(new BorderLayout());
     }
 
     public void setState(int tradeState) {
@@ -36,44 +40,65 @@ public class TradePanel extends JPanel{
     public void paintComponent(Graphics g) {
         // Call the super paintComponent of the panel
         super.paintComponent(g);
-        g.setColor(Color.black);
+
+        /*g.setColor(Color.black);
         g.fillRect(0, 0, TradeFrame.FRAME_DIM.width, TradeFrame.FRAME_DIM.height);
         g.setColor(Color.WHITE);
-        g.setFont(new Font("ARIAL", Font.BOLD, 20));
-        //Main Menu
+        g.setFont(new Font("ARIAL", Font.BOLD, 16));
+*/
+        //Login
         if(ScreenState==0) {
-            g.drawString("1) PLAY GAME",400,400);
-            g.drawString("2) HIGH SCORES",400,500);
+            JLabel usernameLabel = new JLabel("Username:");
+            JLabel passwordLabel = new JLabel("Password:");
+            JTextField username= new JTextField (15);
+            JTextField password= new JTextField(15);
+            JButton log = new JButton("Login");
+            mUsername=username.getText();
+            mPassword=password.getText();
+
+            add(usernameLabel, BorderLayout.CENTER);
+            add(username, BorderLayout.CENTER);
+            add(passwordLabel, BorderLayout.CENTER);
+            add(password, BorderLayout.CENTER);
+            add(log, BorderLayout.CENTER);
+
+/*
+            if (isLoginValid()){
+                ScreenState=1;
+            }
+            else{
+                JLabel problem = new JLabel("There's a problem with your login");
+            }
+*/
         }
-        //Game
+
         if (ScreenState == 1) {
-            //Draw the scoreboard
 
-            g.drawString("Points:" + Game.getmPoints() + " Level:" + Game.getLevel(), 10, 50);
-            //Start redrawing all the objects of the game.
-            ArrayList<Sprite> sprites = Game.getDrawableSprites();
-
-
-            for (Sprite sprite : sprites) {
-                sprite.draw(g);
+            //Draw the main menu
+            JLabel usernameLabel = new JLabel("Hello "+mUsername);
+            JButton consPrice = new JButton("Estimate");
+            JButton sell = new JButton("Sell");
+            JButton buy = new JButton("Buy");
+            JLabel stock = new JLabel("Stock:");
+            JTextField stock_value= new JTextField (15);
+            JLabel price = new JLabel("Price:");
+            JTextField price_value= new JTextField (15);
+            JLabel quantity = new JLabel("Quantity");
+            JTextField quantity_value= new JTextField (15);
+            int rows = mStock.size();
+            JTextArea availableStocks = new JTextArea(rows,1);
+            for (String stockName : mStock.values()) {
+               //Code
             }
         }
-        //High Scores
+        //Logout?
         if(ScreenState==2) {
-            g.drawString("High Scores", 400, 100);
-            try {
-                ArrayList<Integer> list = HighScorePlace.getTopTenScore();
-                for (int i = 0; i < list.size(); i++) {
-                    g.drawString(i+1 + ")" + list.get(i), 400, 200 + i * 50);
-                }
-            } catch (FileNotFoundException e) {
-                g.drawString("No scores have been added or problem with the file. Please reload Galaga.",200,200);
-            }
-        }
-        //Game Over
-        if(ScreenState==3){
-            g.drawString("GAME OVER",250,200);
-            g.drawString("Points: " + Game.getmPoints() + " Level: " + Game.getLevel(),200,300);
+
         }
     }
+
+    private boolean isLoginValid() {
+        return true;
+    }
+
 }

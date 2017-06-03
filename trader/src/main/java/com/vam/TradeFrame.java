@@ -1,5 +1,6 @@
 package com.vam;
 
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -10,7 +11,7 @@ import javax.swing.*;
 public class TradeFrame extends JFrame{
 
     /** The window dimensions for the Frame */
-    public static final Dimension FRAME_DIM = new Dimension(800, 600);
+    public static final Dimension FRAME_DIM = new Dimension(1440, 900);
 
     /* The panel for the application **/
     private TradePanel mPanel;
@@ -23,7 +24,7 @@ public class TradeFrame extends JFrame{
 
         enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
-        //Set the game controller for the Frame
+        //Set the trader controller for the Frame
         this.mController = controller;
 
         try {
@@ -51,18 +52,12 @@ public class TradeFrame extends JFrame{
     }
     private void initPanel() throws Exception {
 
-        //Set the layout for the panel
         JPanel contentPane = (JPanel) this.getContentPane();
         contentPane.setLayout(new BorderLayout());
-        //Create a new GamePanel for the controller
+        //Create a new Panel for the controller
         this.mPanel = new TradePanel();
 
-        //Let the controller be the listener for the all actions that happen on the game panel
-//        mPanel.addKeyListener(this.mController);
-// Controller lida com todos eventos
-
-        this.addKeyListener(this.mController);
-
+        //Let the controller be the listener for the all actions that happen on the panel
         //Add the panel to the window's content panel.
         contentPane.add(mPanel);
     }
