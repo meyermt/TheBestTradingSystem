@@ -326,10 +326,20 @@ public class Peer extends ReceiverAdapter {
         Address address = view.getMembers().get(0);
         if (address.equals(channel.getAddress()) && !isSuper) { // implies a super has gone down and this peer is now top of list/super
             isSuper = true;
-
+            requestGroupMembership();
+            // TODO: Need to wait and then have the peer messaging update a class field of some sort that will always get sent in the admin client req
+            waitFiveSecs();
             Socket adminClient = tryClient(ADMIN_IP, ADMIN_PORT);
             PeerAdminRequest request = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, this.continent, this.country, this.market,
                     );
+        }
+    }
+
+    public static void waitFiveSecs() {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Unable to sleep. Insomnia?", e);
         }
     }
 
@@ -347,7 +357,9 @@ public class Peer extends ReceiverAdapter {
         }
     }
 
-    public static void requestGroupMembership()
+    public static void requestGroupMembership() {
+
+    }
 
     public static Socket tryClient(String ip, int port) {
 
