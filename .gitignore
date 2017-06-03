@@ -83,3 +83,7 @@ fabric.properties
 # price file
 *.csv
 
+# all apple ds store files
+.DS_Store
+**/.DS_Store
+
