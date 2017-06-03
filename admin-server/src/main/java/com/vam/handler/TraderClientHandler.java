@@ -58,14 +58,14 @@ public class TraderClientHandler implements Runnable{
     private void processTraderReq(TraderAdminRequest request) {
         Socket client = tryClient(request);
         if (request.getAction() == TraderAdminAction.LOGIN) {
-            List<Peer> peers = peersDB.getCountryPeers(request.getCountry());
+            List<PeerData> peers = peersDB.getCountryPeers(request.getCountry());
             if (peers.isEmpty()) {
                 AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.NO_AVAILABLE_PEER, "", 0, Collections.emptyList());
                 sendResponse(client, response);
             } else  {
                 Random rn = new Random();
                 int peerNum = rn.nextInt(peers.size()); // randomize which peer to connect to in a country
-                Peer connectPeer = peers.get(peerNum);
+                PeerData connectPeer = peers.get(peerNum);
                 List<Stock> stocks = stocksDB.getAllStocks();
                 AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.OK, connectPeer.getIp(), connectPeer.getPort(), stocks);
                 sendResponse(client, response);

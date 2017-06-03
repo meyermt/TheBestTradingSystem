@@ -8,11 +8,11 @@ import java.util.List;
 public class AdminPeerResponse {
 
     private AdminPeerResponseCode code;
-    private List<Peer> superpeers;
+    private List<PeerData> superpeers;
 
     public AdminPeerResponse() {}
 
-    public AdminPeerResponse(AdminPeerResponseCode code, List<Peer> superpeers) {
+    public AdminPeerResponse(AdminPeerResponseCode code, List<PeerData> superpeers) {
         this.code = code;
         this.superpeers = superpeers;
     }
@@ -21,7 +21,7 @@ public class AdminPeerResponse {
         return code;
     }
 
-    public List<Peer> getSuperpeers() {
+    public List<PeerData> getSuperpeers() {
         return superpeers;
     }
 }

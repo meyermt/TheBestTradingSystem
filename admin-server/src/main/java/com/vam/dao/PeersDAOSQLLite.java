@@ -1,6 +1,6 @@
 package com.vam.dao;
 
-import com.vam.json.Peer;
+import com.vam.json.PeerData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,7 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<Peer> getAllPeers() {
+    public List<PeerData> getAllPeers() {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME;
         try (Connection conn = this.connect(DB_NAME);
              Statement stmt  = conn.createStatement();
@@ -86,7 +86,7 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<Peer> getSuperPeers() {
+    public List<PeerData> getSuperPeers() {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE super = 1";
         try (Connection conn = this.connect(DB_NAME);
@@ -99,7 +99,7 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<Peer> getContinentPeers(String continent) {
+    public List<PeerData> getContinentPeers(String continent) {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE continent = ?";
         return getPeerOneWhere(sql, continent);
@@ -110,13 +110,13 @@ public class PeersDAOSQLLite implements PeersDAO {
      * @param country
      * @return
      */
-    public List<Peer> getCountryPeers(String country) {
+    public List<PeerData> getCountryPeers(String country) {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE country = ?";
         return getPeerOneWhere(sql, country);
     }
 
-    private List<Peer> getPeerOneWhere(String sql, String clause) {
+    private List<PeerData> getPeerOneWhere(String sql, String clause) {
         try (Connection conn = this.connect(DB_NAME);
             PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1, clause);
@@ -160,11 +160,11 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    private List<Peer> collectPeers(ResultSet rs) {
+    private List<PeerData> collectPeers(ResultSet rs) {
         try {
-            List<Peer> peers = new ArrayList<>();
+            List<PeerData> peers = new ArrayList<>();
             while (rs.next()) {
-                Peer peer = new Peer(rs.getString("ip"),
+                PeerData peer = new PeerData(rs.getString("ip"),
                         rs.getInt("port"), rs.getString("continent"),
                         rs.getString("country"), rs.getString("market"), rs.getBoolean("super"));
                 peers.add(peer);

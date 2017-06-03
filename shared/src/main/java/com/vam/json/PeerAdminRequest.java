@@ -11,13 +11,13 @@ public class PeerAdminRequest {
     private String continent;
     private String country;
     private String market;
-    private List<Peer> peers;
+    private List<PeerData> peers;
     private String sourceIP;
     private int sourcePort;
 
     public PeerAdminRequest() {}
 
-    public PeerAdminRequest(PeerAdminAction action, String continent, String country, String market, List<Peer> peers, String sourceIP, int sourcePort) {
+    public PeerAdminRequest(PeerAdminAction action, String continent, String country, String market, List<PeerData> peers, String sourceIP, int sourcePort) {
         this.action = action;
         this.continent = continent;
         this.country = country;
@@ -64,7 +64,7 @@ public class PeerAdminRequest {
         return country;
     }
 
-    public List<Peer> getPeers() {
+    public List<PeerData> getPeers() {
         return peers;
     }
 }
