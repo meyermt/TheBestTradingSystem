@@ -114,14 +114,6 @@ public class Peer{
     public void start(){
 
 
-        if(recover){
-            recover();
-        } else {
-            readQtyFile();
-            readPriceFile();
-            registerWithSuperPeer();
-
-        }
 
         ExecutorService pool = Executors.newCachedThreadPool();
         //Create thread with admin server
@@ -217,10 +209,8 @@ public class Peer{
     public static void main(String[] args){
         Map<String, String> peerOpts = loadPeerOpts(args);
         Peer peer = new Peer(Integer.parseInt(peerOpts.get(PORT_ARG)), peerOpts.get(CONTINENT_ARG), peerOpts.get(COUNTRY_ARG),
-                peerOpts.get(MARKET_ARG), peerOpts.get(QUANT_FILE_ARG), peerOpts.get(PRICE_FILE_ARG));
-
+                peerOpts.get(MARKET_ARG), Boolean.parseBoolean(peerOpts.get(SUPER_ARG)), Integer.parseInt(peerOpts.get(SUPER_PORT_ARG)));
         peer.start();
-
     }
 
     private static Map<String, String> loadPeerOpts(String[] args) {
