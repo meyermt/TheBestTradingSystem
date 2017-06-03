@@ -75,8 +75,10 @@ public class TraderClientHandler implements Runnable{
         } else if (request.getAction() == TraderAdminAction.PEER_FAILURE) {
             peersDB.deleteMarketPeer(request.getFailedPeerMarket());
             AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.OK, "", 0, Collections.emptyList());
+            sendResponse(client, response);
         } else {
             AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.INVALID_ACTION, "", 0, Collections.emptyList());
+            sendResponse(client, response);
         }
     }
 
