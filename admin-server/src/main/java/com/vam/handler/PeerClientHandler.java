@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -53,7 +52,7 @@ public class PeerClientHandler implements Runnable {
         Socket client = tryClient(request);
         if (request.getAction() == PeerAdminAction.REGISTER_NETWORK) { // new network, so just wipe out old entries and add all new AND send back sps to superpeer
             peersDB.deleteContinentPeers(request.getContinent()); // wipe out old local peer network
-            List<Peer> superPeers = peersDB.getSuperPeers(); // collect remaining superpeers
+            List<PeerAdapter> superPeers = peersDB.getSuperPeers(); // collect remaining superpeers
             request.getPeers().forEach(peer ->{
                 // TODO: need to confirm that the super peer will NOT send themselves in this list of peers in their registered network
                 peersDB.insertPeer(peer.getIp(), peer.getPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);

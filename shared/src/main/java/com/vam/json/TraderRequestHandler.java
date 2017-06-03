@@ -9,9 +9,9 @@ import com.google.gson.*;
 public class TraderRequestHandler implements Runnable {
 
     private Socket socket;
-    private Peer peer;
+    private PeerAdapter peer;
 
-    public TraderRequestHandler(Socket socket, Peer peer) {
+    public TraderRequestHandler(Socket socket, PeerAdapter peer) {
         this.socket = socket;
         this.peer = peer;
     }

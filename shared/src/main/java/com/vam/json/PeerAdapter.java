@@ -4,6 +4,7 @@ import org.jgroups.JChannel;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
 import org.jgroups.blocks.RpcDispatcher;
+import org.jgroups.blocks.MethodCall;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +25,11 @@ import java.net.*;
  */
 
 
-public class Peer extends ReceiverAdapter{
+public class PeerAdapter extends ReceiverAdapter{
 
-    private static final Logger logger = LoggerFactory.getLogger(Peer.class);
+    //Todo recovery
+
+    private static final Logger logger = LoggerFactory.getLogger(PeerAdapter.class);
     private static DateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm");
 
     protected int port;
@@ -35,22 +38,21 @@ public class Peer extends ReceiverAdapter{
     protected boolean isSuper;
     protected String qtyFile;
     protected String priceFile;
-    protected boolean recover = false;
+    protected ConcurrentHashMap<String, Stock> stockMap = new ConcurrentHashMap<>();
 
 
-    private ConcurrentHashMap.KeySetView<Address, Boolean> superPeerMap = ConcurrentHashMap.newKeySet();
-    private ConcurrentHashMap<String, Stock> stockMap = new ConcurrentHashMap<>();
+    //Concurrent hash set managing its super peer and peers in the network
+    protected ConcurrentHashMap.KeySetView<Address, Boolean> peerMap = ConcurrentHashMap.newKeySet();
+    protected ConcurrentHashMap.KeySetView<Address, Boolean> superPeerMap = ConcurrentHashMap.newKeySet();
+
 
     protected JChannel channel;
     protected View view;
     protected RpcDispatcher rpcDispatcher;
 
-    private static Peer peer;
 
-    public Peer(){}
-
-    public Peer(int port, String continent, String market,
-                String qtyFile, String priceFile){
+    public PeerAdapter(int port, String continent, String market,
+                       String qtyFile, String priceFile){
 
         this.port = port;
         this.continent = continent;
@@ -80,13 +82,12 @@ public class Peer extends ReceiverAdapter{
         this.port = Integer.parseInt(portNumber);
     }
 
-    public void setRecover(boolean recover){
-        this.recover = recover;
+
+    public String getContinent(){
+        return this.continent;
     }
 
-
-
-
+    //The peer can get to know if a super peer joins the network coz we only have five, we can configure their name
     @Override
     public void viewAccepted(View newView){
         System.out.println(this.view);
@@ -107,6 +108,11 @@ public class Peer extends ReceiverAdapter{
             for(Address address : membersLeaving){
                 if(superPeerMap.contains(address)){
                     superPeerMap.remove(address);
+                } else if(peerMap.contains(address)){
+                    deletePeerAdmin();
+                    peerMap.remove(address);
+                    System.out.println(address + "left" + this.continent);
+
                 }
 
             }
@@ -116,8 +122,10 @@ public class Peer extends ReceiverAdapter{
             for(Address address : membersJoining){
                 //If the peer is a super peer, the super peer is added
                 //Hardcode a list of super peer logical name
-                if(this.channel.getName(address).equals("Continent-SuperPeer")){
+                if(this.channel.getName(address).equals("Continent-SuperPeerAdapter")){
                     superPeerMap.add(address);
+                } else {
+                    peerMap.add(address);
                 }
 
             }
@@ -226,23 +234,39 @@ public class Peer extends ReceiverAdapter{
 
     }
 
-    public void lookForSuperPeer(){
-        //Todo
+    //Todo
+    public void deletePeerAdmin(){
+
+    }
+    public AdminPeerResponse registerWithAdmin(){
+        return new AdminPeerResponse();
+    }
+
+    public AdminPeerResponse lookForSuperPeer(){
+        return new AdminPeerResponse();
     }
 
     private void registerWithSuperPeer(){
-        //Working on
+        MethodCall methodCall = new MethodCall("registerWithSuperPeer", new Object[]{this.market,this.channel.getAddress(),
+        this.stockMap},new Class[]{String.class,Address.class,ConcurrentHashMap.class});
+        String message = "Fails to register with super peer";
+
+        PeerResponse response = null;
+        if(!superPeerMap.isEmpty()){
+            response = ResponseProcessor.rpcAll(this.rpcDispatcher,superPeerMap,methodCall,message);
+
+        } else {
+            throw new RuntimeException("Super peer is not in the network");
+        }
+
+        if(!response.isSucceed()){
+            throw new RuntimeException(message);
+
+        }
 
     }
 
 
-    public void recover(){
-        //Todo
-
-    }
-
-
-    //Still working on
     public PeerResponse consult(PeerRequest request){
         TraderAction action = request.getAction();
         String stockName = request.getStock();
@@ -250,26 +274,80 @@ public class Peer extends ReceiverAdapter{
             if (stockMap.containsKey(stockName)) {
                 Stock stock = stockMap.get(stockName);
                 double price = stock.getPrice();
-                return new PeerResponse(true, action, price);
+                String message = request.getStock() + " Price: " + price;
+                return new PeerResponse(true, action, price,message);
             } else {
                 //Ask super peer
-                //Todo
+                MethodCall methodCall = new MethodCall("consult", new Object[]{request},
+                        new Class[]{PeerRequest.class});
+                String error = "Fail to call consult the price of " + stockName + " in the exchange.";
+                return ResponseProcessor.rpcConsult(rpcDispatcher, superPeerMap.iterator().next(), methodCall, error);
+
 
             }
         } else {
-            return new PeerResponse();
+            String messge = "Fail to process consult the price";
+            return new PeerResponse(false,messge);
         }
-        return new PeerResponse();
+
     }
 
-    //Still working on
+
     public PeerResponse transact(PeerRequest request) {
         TraderAction action = request.getAction();
         String stockName = request.getStock();
-        int shares = request.getShares();
+        int sharesRequested = request.getShares();
 
-        return new PeerResponse();
-        //Todo
+        if (action != null && action == TraderAction.BUY) {
+            if (stockMap.containsKey(stockName)) {
+                Stock stock = stockMap.get(stockName);
+                stock.updateShares(request.getDate());
+
+                boolean enoughShares = stock.getShares() >= sharesRequested;
+
+                if (enoughShares) {
+                    stock.setShares(stock.getShares() - sharesRequested);
+                    String message = request.getDate() +
+                            " Filled: User " + request.getTrader() + " Buy " + stockName + " " + sharesRequested + " " + stock.getPrice();
+                    logger.info(message);
+                    return new PeerResponse(true, request.getAction(), stock.getPrice(),message);
+                }
+
+                // fail to buy
+                String message = null;
+                if (!enoughShares) {
+                    message = "does not have enough shares";
+                }
+                logger.info(message);
+                return new PeerResponse(false, request.getAction(), stock.getPrice(), message);
+            }
+        } else if (action != null && action == TraderAction.SELL) {
+
+            if (stockMap.containsKey(stockName)) {
+                Stock stock = stockMap.get(stockName);
+                stock.updateShares(request.getDate());
+                stock.setShares(stock.getShares() + sharesRequested);
+
+                String message = request.getDate() + " Filled: User " + request.getTrader() + " Sell " + stockName + " " + sharesRequested + " " + stock.getPrice();
+                logger.info(message);
+                return new PeerResponse(true, request.getAction(), stock.getPrice(),message);
+            } else {
+                //Buy stock remotely
+                MethodCall methodCall = new MethodCall("transact", new Object[]{request},
+                        new Class[]{PeerRequest.class});
+                String error = "Fail to call transact remotely " + sharesRequested + " shares of " + stockName + " in the exchange.";
+                return ResponseProcessor.rpcTransact(rpcDispatcher, superPeerMap.iterator().next(), methodCall, error);
+            }
+
+        } else {
+            String message = action + " is not supported.";
+            logger.error(message);
+            return new PeerResponse(false, message);
+        }
+
+        return new PeerResponse(false, "Transact fails");
+
+
     }
 
 
@@ -278,14 +356,11 @@ public class Peer extends ReceiverAdapter{
         //Look for super peer
         lookForSuperPeer();
 
-        if(recover){
-            recover();
-        } else {
-            readQtyFile();
-            readPriceFile();
-            registerWithSuperPeer();
+        readQtyFile();
+        readPriceFile();
+        registerWithSuperPeer();
 
-        }
+
 
         ExecutorService pool = Executors.newCachedThreadPool();
         //Create thread with admin server
@@ -307,14 +382,14 @@ public class Peer extends ReceiverAdapter{
 
 
     public static void main(String[] args){
-        String[] inputs = new String[6];
+        String[] inputs = new String[5];
         //Parse command lines
-        if (args.length == 6) {
+        if (args.length == 5) {
 
             if (!args[0].contains("=") || !args[1].contains("=") || !args[2].contains("=")
-                    || !args[3].contains("=") || !args[4].contains("=") || !args[5].contains("=")) {
+                    || !args[3].contains("=") || !args[4].contains("=") ) {
                 throw new IllegalArgumentException("Command Line Argument is in wrong format, " +
-                        "java Peer --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
+                        "java PeerAdapter --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
                         "--priceFile=price_stocks.csv --recover=false");
             } else {
 
@@ -328,15 +403,14 @@ public class Peer extends ReceiverAdapter{
                 String command4 = split4[0];
                 String[] split5 = args[1].split("=");
                 String command5 = split5[0];
-                String[] split6= args[1].split("=");
-                String command6 = split6[0];
+
 
 
                 if (!command1.equals("--port") || !command2.equals("--continent") || !command3.equals("--market")
-                        ||!command1.equals("--qtyFile") || !command2.equals("--priceFile") || !command3.equals("--recover") ) {
+                        ||!command4.equals("--qtyFile") || !command5.equals("--priceFile") ) {
 
                     throw new IllegalArgumentException("Command Line Argument is in wrong format, " +
-                            "java Peer --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
+                            "java PeerAdapter --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
                             "--priceFile=price_stocks.csv --recover=false");
 
 
@@ -347,7 +421,6 @@ public class Peer extends ReceiverAdapter{
                 inputs[2] = split3[1];
                 inputs[3] = split4[1];
                 inputs[4] = split5[1];
-                inputs[5] = split6[1];
 
             }
 
@@ -355,17 +428,12 @@ public class Peer extends ReceiverAdapter{
         } else {
 
             throw new IllegalArgumentException("Command Line Argument is in wrong format, " +
-                    "java Peer --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
+                    "java PeerAdapter --port=1000 --continent=america --market=new_york --qtyFile=qty_stocks.csv" +
                     "--priceFile=price_stocks.csv --recover=false");
 
         }
 
-        Peer peer = new Peer(Integer.parseInt(inputs[0]),inputs[1],inputs[2],inputs[3],inputs[4]);
-        if(inputs[5].equals("true")){
-            peer.setRecover(true);
-        } else {
-            peer.setRecover(false);
-        }
+        PeerAdapter peer = new PeerAdapter(Integer.parseInt(inputs[0]),inputs[1],inputs[2],inputs[3],inputs[4]);
         peer.start();
 
     }

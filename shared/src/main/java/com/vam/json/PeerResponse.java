@@ -11,7 +11,8 @@ public class PeerResponse implements Serializable{
     private boolean succeed;
     private double price;
     private TraderAction action;
-    private Address exchange;
+    private Address peerAddress;
+    private String message;
 
     public PeerResponse(){}
 
@@ -19,22 +20,40 @@ public class PeerResponse implements Serializable{
         this.succeed = succeed;
     }
 
-    public PeerResponse(boolean succeed, TraderAction action, double price){
+    public PeerResponse(boolean succeed, String message){
+        this.succeed = succeed;
+        this.message = message;
+    }
+
+    public PeerResponse(boolean succeed, TraderAction action, double price, String message){
         this.succeed = succeed;
         this.action = action;
         this.price = price;
+        this.message = message;
 
     }
 
-    public PeerResponse(boolean succeed, double price, TraderAction action, Address exchange) {
+    public PeerResponse(boolean succeed, double price, TraderAction action, Address add) {
         this.succeed = succeed;
         this.action = action;
         this.price = price;
-        this.exchange = exchange;
+        this.peerAddress = add;
     }
 
     public boolean isSucceed() {
         return succeed;
+    }
+
+    public void setSucceed(boolean succeed){
+        this.succeed = succeed;
+    }
+
+    public void setMessage(String msg){
+        this.message = msg;
+    }
+
+    public String getMessge(){
+        return this.message;
     }
 
     public TraderAction getAction(){
@@ -45,8 +64,13 @@ public class PeerResponse implements Serializable{
         return price;
     }
 
-    public Address getExchange() {
-        return exchange;
+    public Address getPeer() {
+        return peerAddress;
+    }
+
+    public void setAddress(Address add){
+        this.peerAddress = add;
+
     }
 
 }

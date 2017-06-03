@@ -1,6 +1,6 @@
 package com.vam.dao;
 
-import com.vam.json.Peer;
+import com.vam.json.PeerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<Peer> getAllPeers() {
+    public List<PeerAdapter> getAllPeers() {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME;
         try (Connection conn = this.connect(DB_NAME);
              Statement stmt  = conn.createStatement();
@@ -63,7 +63,7 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<Peer> getSuperPeers() {
+    public List<PeerAdapter> getSuperPeers() {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE super = 1";
         try (Connection conn = this.connect(DB_NAME);
@@ -76,19 +76,19 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<Peer> getContinentPeers(String continent) {
+    public List<PeerAdapter> getContinentPeers(String continent) {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE continent = ?";
         return getPeerOneWhere(sql, continent);
     }
 
-    public List<Peer> getCountryPeers(String country) {
+    public List<PeerAdapter> getCountryPeers(String country) {
         String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
                 " WHERE country = ?";
         return getPeerOneWhere(sql, country);
     }
 
-    private List<Peer> getPeerOneWhere(String sql, String clause) {
+    private List<PeerAdapter> getPeerOneWhere(String sql, String clause) {
         try (Connection conn = this.connect(DB_NAME);
             PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1, clause);
@@ -124,11 +124,11 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    private List<Peer> collectPeers(ResultSet rs) {
+    private List<PeerAdapter> collectPeers(ResultSet rs) {
         try {
-            List<Peer> peers = new ArrayList<>();
+            List<PeerAdapter> peers = new ArrayList<>();
             while (rs.next()) {
-                Peer peer = new Peer(rs.getString("ip"),
+                PeerAdapter peer = new PeerAdapter(rs.getString("ip"),
                         rs.getInt("port"), rs.getString("continent"),
                         rs.getString("country"), rs.getString("market"), rs.getBoolean("super"));
                 peers.add(peer);
