@@ -14,25 +14,13 @@ public class TradeFrame extends JFrame{
     public static final Dimension FRAME_DIM = new Dimension(800, 600);
 
     /* The panel for the application **/
-    private TradePanel mPanel;
+    private JPanel tradePanel;
 
     /* The controller for the trader**/
     private Main mController;
 
     //Interação do frame com o controller
-    public TradeFrame(Main controller) {
-
-        enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-
-        //Set the game controller for the Frame
-        this.mController = controller;
-
-        try {
-            // Try to initialize the panel
-            initPanel();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public TradeFrame() {
 
         //Initialize the frame
         this.setTitle("Global Trader");
@@ -41,44 +29,56 @@ public class TradeFrame extends JFrame{
         this.setResizable(false);
         this.pack();
         this.setVisible(true);
+        initTraderPanel();
     }
 
+    /*
+        Trader panel that has buttons for options during hand.
+    */
+    private void initTraderPanel() {
+        JPanel traderPanel = new JPanel();
+        traderPanel.setLayout(new BoxLayout(traderPanel, BoxLayout.Y_AXIS));
+        traderPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        initPricePanel();
+    }
 
-    /**
-     * Draws the current information to the window
+    /*
+    betting panel has all money information as well as new deal button.
+ */
+    private void initPricePanel() {
+        JPanel pricePanel = new JPanel();
+        pricePanel.setLayout(new BoxLayout(pricePanel, BoxLayout.Y_AXIS));
+        pricePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        pricePanel.setPreferredSize(new Dimension(200, 100));
+        setStockFieldButton(pricePanel);
+        this.add(pricePanel, BorderLayout.WEST);
+    }
+
+    /*
+        allows user to set the amount they would like to bet between rounds.
      */
-    public void draw() {
-        this.mPanel.repaint();
-    }
-    private void initPanel() throws Exception {
-
-        //Set the layout for the panel
-        JPanel contentPane = (JPanel) this.getContentPane();
-        contentPane.setLayout(new BorderLayout());
-        //Create a new GamePanel for the controller
-        this.mPanel = new TradePanel();
-
-        //Let the controller be the listener for the all actions that happen on the game panel
-//        mPanel.addKeyListener(this.mController);
-// Controller lida com todos eventos
-
-        this.addKeyListener(this.mController);
-
-        //Add the panel to the window's content panel.
-        contentPane.add(mPanel);
-    }
-
-    public void setmPanel(int tradeState) {
-        mPanel.setState(tradeState);
-    }
-
-    @Override
-    protected void processWindowEvent(WindowEvent e) {
-        super.processWindowEvent(e);
-        //Exit the game if the window closed button is closed.
-        if (e.getID() == WindowEvent.WINDOW_CLOSING) {
-            System.exit(0);
-        }
+    private void setStockFieldButton(JPanel pricePanel) {
+        JLabel stockLabel = new JLabel();
+        stockLabel.setText("Stock to Search");
+        pricePanel.add(stockLabel);
+        JTextField stockTextField = new JTextField(10);
+        stockTextField.setText("");
+        stockTextField.setMaximumSize(new Dimension(200, 20));
+        pricePanel.add(stockTextField);
+        JLabel priceReturnLabel = new JLabel();
+        priceReturnLabel.setText("Price: ");
+        pricePanel.add(priceReturnLabel);
+        JButton betButton = new JButton();
+        betButton.setText("Search for Price");
+        betButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO: should probably add an if-else here that does the client call to the network to see what price is and if stock is not found, JOPtionPane pops up to tell trader
+                // TODO: At the very least need to implement getting the price here.
+                priceReturnLabel.setText("Price: 4");
+            }
+        });
+        pricePanel.add(betButton);
     }
 
 }
