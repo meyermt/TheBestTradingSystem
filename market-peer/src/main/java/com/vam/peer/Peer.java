@@ -33,6 +33,8 @@ public class Peer{
     private static final String QUANT_FILE_ARG = "qtyFile";
     private static final String PRICE_FILE_ARG = "priceFile";
     private static final String RECOVER_ARG = "recover";
+    private static final String SUPER_ARG = "super";
+    private static final String SUPER_PORT_ARG = "superPort";
     private static final String MY_IP = "127.0.0.1";
 
     private static final Logger logger = LoggerFactory.getLogger(Peer.class);
@@ -230,6 +232,8 @@ public class Peer{
         Option qtyOpt = new Option("q", QUANT_FILE_ARG, true, "Quantity file for peer");
         Option priceOpt = new Option("pr", PRICE_FILE_ARG, true, "Price file for peer");
         Option recOpt = new Option("r", RECOVER_ARG, true, "Recover boolean for peer");
+        Option superOpt = new Option("s", SUPER_ARG, true, "Super boolean for peer");
+        Option spPortOpt = new Option("sp", SUPER_PORT_ARG, true, "Super port for peer");
         peerOpt.setRequired(true);
         contOpt.setRequired(true);
         ctryOpt.setRequired(true);
@@ -237,6 +241,8 @@ public class Peer{
         qtyOpt.setRequired(true);
         priceOpt.setRequired(true);
         recOpt.setRequired(true);
+        superOpt.setRequired(true);
+        spPortOpt.setRequired(false);
         options.addOption(peerOpt);
         options.addOption(contOpt);
         options.addOption(ctryOpt);
@@ -244,6 +250,8 @@ public class Peer{
         options.addOption(qtyOpt);
         options.addOption(priceOpt);
         options.addOption(recOpt);
+        options.addOption(superOpt);
+        options.addOption(spPortOpt);
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
@@ -257,6 +265,8 @@ public class Peer{
             String qtyFile = cmd.getOptionValue(QUANT_FILE_ARG);
             String priceFile = cmd.getOptionValue(PRICE_FILE_ARG);
             String recover = cmd.getOptionValue(RECOVER_ARG);
+            String isSuper = cmd.getOptionValue(SUPER_ARG);
+            String superPort = cmd.getOptionValue(SUPER_PORT_ARG);
             args.put(PORT_ARG, port);
             args.put(CONTINENT_ARG, cont);
             args.put(COUNTRY_ARG, ctry);
@@ -264,19 +274,13 @@ public class Peer{
             args.put(QUANT_FILE_ARG, qtyFile);
             args.put(PRICE_FILE_ARG, priceFile);
             args.put(RECOVER_ARG, recover);
+            args.put(SUPER_ARG, isSuper);
+            args.put(SUPER_PORT_ARG, superPort);
             return args;
         } catch (ParseException e) {
             formatter.printHelp("admin server help", options);
             throw new RuntimeException("Unable to read arguments, see help.");
         }
     }
-//    private static final String PORT_ARG = "port";
-//    private static final String CONTINENT_ARG = "continent";
-//    private static final String COUNTRY_ARG = "country";
-//    private static final String MARKET_ARG = "market";
-//    private static final String QUANT_FILE_ARG = "qtyFile";
-//    private static final String PRICE_FILE_ARG = "priceFile";
-//    private static final String RECOVER_ARG = "recover";
-
 
 }
