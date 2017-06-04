@@ -10,13 +10,17 @@ public class TraderPeerResponse {
     private double price;
     private String stock;
     private int shares;
+    private String targetIP;
+    private int targetPort;
 
-    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock, int shares){
+    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock, int shares,String targetIP, int targetPort){
         this.succeed = succeed;
         this.action = action;
         this.price = price;
         this.stock = stock;
         this.shares = shares;
+        this.targetIP = targetIP;
+        this.targetPort = targetPort;
     }
 
 

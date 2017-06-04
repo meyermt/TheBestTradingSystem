@@ -91,11 +91,61 @@ public class Peer{
         return continent;
     }
 
-    public void processMarketAction(PeerToPeerMessage message) {
+    public TraderPeerResponse consultPriceLocally(TraderPeerRequest traderPeerRequest){
+        String stockName = traderPeerRequest.getStock().getStock();
+        double price = this.marketDAO.getPrice(stockName);
+        return new TraderPeerResponse(true, traderPeerRequest.getAction(),price,stockName,0,traderPeerRequest.getSourceIP(),
+                traderPeerRequest.getSourcePort());
+    }
+
+    public TraderPeerResponse transactLocally(TraderPeerRequest traderPeerRequest){
+        String stockName = traderPeerRequest.getStock().getStock();
+        int shares = traderPeerRequest.getShares();
+        double priceRequested = traderPeerRequest.getPrice();
+        double price = this.marketDAO.getPrice(stockName);
+        if(priceRequested == price) {
+            if (traderPeerRequest.getAction() == TraderAction.BUY) {
+
+                int availableShares = this.marketDAO.getQuantity(stockName);
+                if (availableShares > shares) {
+                    this.marketDAO.updateQuantity(stockName, availableShares - shares);
+                    return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
+                            traderPeerRequest.getSourcePort());
+                } else {
+                    logger.info(stockName + " only has " + availableShares + ", but trader requests " + shares);
+                    return new TraderPeerResponse(false, traderPeerRequest.getAction(), price, stockName, availableShares, traderPeerRequest.getSourceIP(),
+                            traderPeerRequest.getSourcePort());
+                }
+            } else {
+                this.marketDAO.updateQuantity(stockName, this.marketDAO.getQuantity(stockName) + shares);
+                return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
+                        traderPeerRequest.getSourcePort());
+
+            }
+        } else {
+            logger.info("The price trader requested is "+priceRequested+" but the current price for"+stockName + " is "+price);
+            return new TraderPeerResponse(false, traderPeerRequest.getAction(),price,stockName,shares,traderPeerRequest.getSourceIP(),
+                    traderPeerRequest.getSourcePort());
+        }
 
     }
 
+    public void processMarketAction(PeerToPeerMessage message) {
+
+        TraderPeerRequest traderPeerRequest = message.getTraderRequest();
+        if(traderPeerRequest.getAction() == TraderAction.CONSULT){
+            TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
+            PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
+                    traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
+        } else {
+            TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
+
+        }
+    }
+
     public void processMarketResponse(PeerToPeerMessage message) {
+        TraderPeerRequest traderPeerRequest = message.getTraderRequest();
+        TraderPeerResponse traderPeerResponse = message.getResponse();
 
     }
 
@@ -186,61 +236,6 @@ public class Peer{
         }
     }
 
-//    public PeerPeerResponse consultPrice(TraderPeerRequest request) {
-//        TraderAction action = request.getAction();
-//        String stockName = request.getStock().getStock();
-//        String marketName = request.getStock().getMarket();
-//
-//        if (action != null && action == TraderAction.CONSULT) {
-//            if (this.market == marketName) {
-//                double price = this.marketDAO.getPrice(stockName);
-//                return new PeerPeerResponse(true, action, price, stockName, 0);
-//            } else {
-//                if(!isSuper){
-//                    try {
-//                        Socket socket = new Socket(SUPER_IP,superPort);
-//
-//
-//                } else {
-//                    boolean isMyContinent = false;
-//                    for (PeerData peerData : peerNetwork) {
-//                        if (peerData.getMarket() == marketName) {
-//                            isMyContinent = true;
-//                            String ip = peerData.getIp();
-//                            int port = peerData.getPeerPort();
-//                            try {
-//                                Socket socket = new Socket(ip, port);
-//                                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                                PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-//                                PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
-//                                        0, stockName, 0.0);
-//                                Gson gson = new Gson();
-//                                pw.println(gson.toJson(peerPeerRequest));
-//                                socket.setSoTimeout(1000);
-//                                System.out.println("Timeout");
-//                                PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
-//                                if (peerPeerResponse != null) {
-//                                    return peerPeerResponse;
-//                                } else {
-//                                    return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
-//                                }
-//
-//
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                    if (isMyContinent == false) {
-//
-//                        //Talk to super peer
-//
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     public void sendUpdatedNetwork(){
             logger.info("new peer group membership available. Shipping it to everyone");
             peerNetwork.forEach(peer -> {
@@ -267,99 +262,6 @@ public class Peer{
     public String getMarket(){
         return this.market;
     }
-
-
-//    public TraderPeerResponse consult(TraderPeerRequest request){
-//        TraderAction action = request.getAction();
-//        String stockName = request.getStock().getStock();
-//        String marketName = request.getStock().getMarket();
-//        String continentName = request.getStock().getContinent();
-//
-//        if(action != null && action == TraderAction.CONSULT) {
-//            if (this.market == marketName) {
-//                double price = this.marketDAO.getPrice(stockName);
-//                return new PeerPeerResponse(true, action, price, stockName);
-//            } else {
-//                if (!isSuper) {
-//                    try {
-//
-//                        ServerSocket serverSocket = new ServerSocket(superPort);
-//                        while (true) {
-//                            Socket socket = serverSocket.accept();
-//                            PeerToPeerRequestHandler peerSpRequestHandler = new PeerToPeerRequestHandler(socket);
-//                            pool.submit(peerSpRequestHandler);
-//
-//                        }
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//
-//                    }
-//                } else {
-//                    if (continentName == this.continent) {
-//                        for (PeerData peerData : peerNetwork) {
-//                            if (peerData.getMarket() == marketName) {
-//                                String ip = peerData.getIp();
-//                                int port = peerData.getPort();
-//                                try {
-//                                    Socket socket = new Socket(ip, port);
-//                                    BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                                    PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-//                                    PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
-//                                            0, stockName, 0.0);
-//                                    Gson gson = new Gson();
-//                                    pw.println(gson.toJson(peerPeerRequest));
-//                                    socket.setSoTimeout(1000);
-//                                    System.out.println("Timeout");
-//                                    PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
-//                                    if (peerPeerResponse != null) {
-//                                        return peerPeerResponse;
-//                                    } else {
-//                                        return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
-//                                    }
-//
-//
-//                                } catch (IOException e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        //Talk to super peer
-//
-//                    }
-//
-//                }
-//
-//            }
-//        }
-//    }
-//
-//    public PeerPeerResponse transact(TraderPeerRequest request) {
-//        TraderAction action = request.getAction();
-//        String stockName = request.getStock().getStock();
-//        int shares = request.getShares();
-//        if(action != null) {
-//            if (!isSuper) {
-//                if (action == TraderAction.BUY) {
-//                    int quantity = this.marketDAO.getQuantity(stockName);
-//                    if (quantity > shares) {
-//                        this.marketDAO.updateQuantity(stockName, quantity - shares);
-//                        return new PeerPeerResponse(true, request.getAction(), shares, stockName,request.getShares());
-//                    } else {
-//                        return new PeerPeerResponse(false, request.getAction(),shares,stockName,0);
-//                    }
-//                } else {
-//                    int qty = this.marketDAO.getQuantity(stockName);
-//                    this.marketDAO.updateQuantity(stockName,qty + shares);
-//                    return new PeerPeerResponse(true,request.getAction(),shares,stockName,request.getShares());
-//                }
-//            }
-//        }
-//
-//
-//    }
-
-
 
     public void start(){
 
