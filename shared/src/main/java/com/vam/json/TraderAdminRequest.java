@@ -11,8 +11,6 @@ public class TraderAdminRequest {
     private String country;
     private String failedPeerMarket;
 
-    public TraderAdminRequest() {}
-
     public TraderAdminRequest(String sourceIP, int sourcePort, TraderAdminAction action, String country, String failedPeerMarket) {
         this.sourceIP = sourceIP;
         this.sourcePort = sourcePort;
