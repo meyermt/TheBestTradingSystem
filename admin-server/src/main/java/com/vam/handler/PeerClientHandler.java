@@ -57,12 +57,12 @@ public class PeerClientHandler implements Runnable {
                 // TODO: need to confirm that the super peer will NOT send themselves in this list of peers in their registered network
                 peersDB.insertPeer(peer.getIp(), peer.getPeerPort(), peer.getTraderPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
             });
-            peersDB.insertPeer(request.getSourceIP(), request.getSourcePort(), request.getContinent(), request.getCountry(), request.getMarket(), true);// assumes sp doesn't send themselves in list
+            peersDB.insertPeer(request.getSourceIP(), request.getSourcePeerPort(), request.getSourceTraderPort(), request.getContinent(), request.getCountry(), request.getMarket(), true);// assumes sp doesn't send themselves in list
             AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, superPeers);
             sendResponse(client, response);
         } else if (request.getAction() == PeerAdminAction.ADD_PEER) {
             request.getPeers().forEach(peer ->{
-                peersDB.insertPeer(peer.getIp(), peer.getPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
+                peersDB.insertPeer(peer.getIp(), peer.getPeerPort(), peer.getTraderPort(), , peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
             });
             AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, Collections.emptyList());
             sendResponse(client, response);
@@ -87,10 +87,10 @@ public class PeerClientHandler implements Runnable {
 
     private Socket tryClient(PeerAdminRequest request) {
         try {
-            Socket client = new Socket(request.getSourceIP(), request.getSourcePort());
+            Socket client = new Socket(request.getSourceIP(), request.getSourcePeerPort());
             return client;
         } catch (IOException e) {
-            logger.error("Unable to secure connection back to trader at {} ip and {} port.", request.getSourceIP(), request.getSourcePort());
+            logger.error("Unable to secure connection back to trader at {} ip and {} port.", request.getSourceIP(), request.getSourcePeerPort());
             throw new RuntimeException(e);
         }
     }

@@ -6,6 +6,8 @@ import com.vam.dao.MarketDAOSQLLite;
 import com.vam.handler.PeerSpRequestHandler;
 import com.vam.handler.TraderRequestHandler;
 import com.vam.json.*;
+import com.vam.listener.AdminListener;
+import com.vam.listener.PeerListener;
 import org.apache.commons.cli.*;
 
 import org.slf4j.Logger;
@@ -28,7 +30,8 @@ import java.net.*;
 public class Peer{
 
     //options - args
-    private static final String PORT_ARG = "port";
+    private static final String TRADER_PORT_ARG = "traderPort";
+    private static final String PEER_PORT_ARG = "peerPort";
     private static final String CONTINENT_ARG = "continent";
     private static final String COUNTRY_ARG = "country";
     private static final String MARKET_ARG = "market";
@@ -40,13 +43,15 @@ public class Peer{
     private static final String MY_IP = "127.0.0.1";
     private static final String QTY_CSV = "qty_stocks.csv";
     private static final String PRICE_CSV = "price_stocks.csv";
+    private static final String LOCAL_HOST = "127.0.0.1";
 
     private static final Logger logger = LoggerFactory.getLogger(Peer.class);
     private static DateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm");
     private static final ExecutorService pool = Executors.newCachedThreadPool();
 
     private static String ADMIN_IP = "127.0.0.1"; // yes, we would never do this if we weren't running just locally
-    private static int ADMIN_PORT = 8090;
+    private static int ADMIN_TARGET_PORT = 8090;
+    private static int ADMIN_LISTEN_PORT = 12345;
     private static List<PeerData> peerNetwork = Collections.emptyList();
     private static List<PeerData> superpeerNetwork = Collections.emptyList();
 
@@ -101,28 +106,16 @@ public class Peer{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-<<<<<<< HEAD
     }
 
-    public void registerWithAdminServer(){
+    public void registerNetworkWithAdminServer(){
         try {
-            ServerSocket serverSocket = new ServerSocket(ADMIN_PORT);
-            while (true) {
-
-                Socket socket = serverSocket.accept();
-                socket.setSoTimeout(10000);
-=======
-
-
-    }
-
-                Gson gson = new Gson();
-                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-                PeerAdminRequest registration = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, continent,
-                        country, market, peers, MY_IP, port);
-                pw.println(gson.toJson(registration));
-            }
+            Socket adminClient = new Socket("127.0.0.1", ADMIN_TARGET_PORT);
+            PeerAdminRequest adminRequest = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, continent, country, market,
+                    peerNetwork, LOCAL_HOST, traderPort, peerPort);
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(adminClient.getOutputStream(), true);
+            output.println(gson.toJson(adminRequest));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -154,30 +147,30 @@ public class Peer{
 
                     }
                 } else {
-                    if(continentName == this.continent){
-                        for(PeerData peerData : peerNetwork){
-                            if(peerData.getMarket() == marketName){
+                    if (continentName == this.continent) {
+                        for (PeerData peerData : peerNetwork) {
+                            if (peerData.getMarket() == marketName) {
                                 String ip = peerData.getIp();
                                 int port = peerData.getPort();
-                                try{
-                                    Socket socket = new Socket(ip,port);
+                                try {
+                                    Socket socket = new Socket(ip, port);
                                     BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                    PrintWriter pw = new PrintWriter(socket.getOutputStream(),true);
+                                    PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
                                     PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
-                                            0,stockName,0.0);
+                                            0, stockName, 0.0);
                                     Gson gson = new Gson();
                                     pw.println(gson.toJson(peerPeerRequest));
                                     socket.setSoTimeout(1000);
                                     System.out.println("Timeout");
-                                    PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(),PeerPeerResponse.class);
-                                    if(peerPeerResponse != null) {
+                                    PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
+                                    if (peerPeerResponse != null) {
                                         return peerPeerResponse;
                                     } else {
-                                        return new PeerPeerResponse(false,request.getAction(),0.0,stockName,0);
+                                        return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
                                     }
 
 
-                                } catch (IOException e){
+                                } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                             }
@@ -190,11 +183,7 @@ public class Peer{
                 }
 
             }
-
-
-
-
-
+        }
     }
 
     public PeerPeerResponse transact(TraderPeerRequest request) {
@@ -226,18 +215,26 @@ public class Peer{
 
     public void start(){
 
-        ServerSocket adminSocket = new ServerSocket()
-        this.contMap = mapContinent();
-        if (!isSuper) {
-            registerWithSuperPeer();
-        } else {
-            this.leftPort = contMap.get(continent + "-left");
-            this.rightPort = contMap.get(continent + "-right");
-            registerWithAdminServer();
-        }
-
-
         try {
+            ServerSocket adminSocket = new ServerSocket(ADMIN_LISTEN_PORT);
+            AdminListener adminListener = new AdminListener(this, adminSocket);
+            new Thread(adminListener).start();
+
+            ServerSocket peerSocket = new ServerSocket(peerPort);
+            PeerListener peerListener = new PeerListener(this, peerSocket);
+            new Thread(peerListener).start();
+
+            this.contMap = mapContinent();
+            if (!isSuper) {
+                registerWithSuperPeer();
+            } else {
+                this.leftPort = contMap.get(continent + "-left");
+                this.rightPort = contMap.get(continent + "-right");
+                registerNetworkWithAdminServer();
+            }
+
+
+
             ServerSocket serverSocket = new ServerSocket(traderPort);
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -275,47 +272,46 @@ public class Peer{
 
     public static void main(String[] args){
         Map<String, String> peerOpts = loadPeerOpts(args);
-        Peer peer = new Peer(Integer.parseInt(peerOpts.get(PORT_ARG)), peerOpts.get(CONTINENT_ARG), peerOpts.get(COUNTRY_ARG),
+        Peer peer = new Peer(Integer.parseInt(peerOpts.get(TRADER_PORT_ARG)), Integer.parseInt(peerOpts.get(PEER_PORT_ARG)),
+                peerOpts.get(CONTINENT_ARG), peerOpts.get(COUNTRY_ARG),
                 peerOpts.get(MARKET_ARG), Boolean.parseBoolean(peerOpts.get(SUPER_ARG)), Integer.parseInt(peerOpts.get(SUPER_PORT_ARG)));
         peer.start();
     }
 
     private static Map<String, String> loadPeerOpts(String[] args) {
         Options options = new Options();
-        Option peerOpt = new Option("p", PORT_ARG, true, "Port for peer");
+        Option tpOpt = new Option("tp", TRADER_PORT_ARG, true, "Trader Port for peer");
+        Option ppOpt = new Option("pp", PEER_PORT_ARG, true, "Peer Port for peer");
         Option contOpt = new Option("ct", CONTINENT_ARG, true, "Continent for peer");
         Option ctryOpt = new Option("cy", COUNTRY_ARG, true, "Country for peer");
         Option marketOpt = new Option("m", MARKET_ARG, true, "Market for peer");
-        Option qtyOpt = new Option("q", QUANT_FILE_ARG, true, "Quantity file for peer");
-        Option priceOpt = new Option("pr", PRICE_FILE_ARG, true, "Price file for peer");
         Option recOpt = new Option("r", RECOVER_ARG, true, "Recover boolean for peer");
         Option superOpt = new Option("s", SUPER_ARG, true, "Super boolean for peer");
-        Option spPortOpt = new Option("sp", SUPER_PORT_ARG, true, "Super port for peer");
-        peerOpt.setRequired(true);
+        Option spOpt = new Option("sp", SUPER_PORT_ARG, true, "Super Port for peer");
+        tpOpt.setRequired(true);
         contOpt.setRequired(true);
         ctryOpt.setRequired(true);
         marketOpt.setRequired(true);
-        qtyOpt.setRequired(true);
-        priceOpt.setRequired(true);
+        ppOpt.setRequired(true);
         recOpt.setRequired(true);
         superOpt.setRequired(true);
-        spPortOpt.setRequired(false);
-        options.addOption(peerOpt);
+        spOpt.setRequired(true);
+        options.addOption(tpOpt);
         options.addOption(contOpt);
         options.addOption(ctryOpt);
         options.addOption(marketOpt);
-        options.addOption(qtyOpt);
-        options.addOption(priceOpt);
+        options.addOption(ppOpt);
         options.addOption(recOpt);
         options.addOption(superOpt);
-        options.addOption(spPortOpt);
+        options.addOption(spOpt);
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd;
         try {
             cmd = parser.parse(options, args);
             Map<String, String> args = new HashMap<>();
-            String port = cmd.getOptionValue(PORT_ARG);
+            String traderPort = cmd.getOptionValue(TRADER_PORT_ARG);
+            String peerPort = cmd.getOptionValue(PEER_PORT_ARG);
             String cont = cmd.getOptionValue(CONTINENT_ARG);
             String ctry = cmd.getOptionValue(COUNTRY_ARG);
             String market = cmd.getOptionValue(MARKET_ARG);
@@ -324,7 +320,8 @@ public class Peer{
             String recover = cmd.getOptionValue(RECOVER_ARG);
             String isSuper = cmd.getOptionValue(SUPER_ARG);
             String superPort = cmd.getOptionValue(SUPER_PORT_ARG);
-            args.put(PORT_ARG, port);
+            args.put(TRADER_PORT_ARG, traderPort);
+            args.put(PEER_PORT_ARG, peerPort);
             args.put(CONTINENT_ARG, cont);
             args.put(COUNTRY_ARG, ctry);
             args.put(MARKET_ARG, market);

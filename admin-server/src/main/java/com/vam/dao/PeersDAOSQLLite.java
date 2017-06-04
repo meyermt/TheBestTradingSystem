@@ -86,7 +86,7 @@ public class PeersDAOSQLLite implements PeersDAO {
     }
 
     public List<PeerData> getSuperPeers() {
-        String sql = "SELECT id, ip, peerPort, continent, country, market, super FROM " + DB_NAME +
+        String sql = "SELECT id, ip, peerPort, traderport, continent, country, market, super FROM " + DB_NAME +
                 " WHERE super = 1";
         try (Connection conn = this.connect(DB_NAME);
              Statement stmt  = conn.createStatement();
@@ -98,11 +98,6 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    /**
-     *
-     * @param country
-     * @return
-     */
     public List<PeerData> getCountryPeers(String country) {
         String sql = "SELECT id, ip, traderPort, continent, country, market, super FROM " + DB_NAME +
                 " WHERE country = ?";
@@ -158,7 +153,7 @@ public class PeersDAOSQLLite implements PeersDAO {
             List<PeerData> peers = new ArrayList<>();
             while (rs.next()) {
                 PeerData peer = new PeerData(rs.getString("ip"),
-                        rs.getInt("port"), rs.getString("continent"),
+                        rs.getInt("peerPort"), rs.getInt("traderPort"), rs.getString("continent"),
                         rs.getString("country"), rs.getString("market"), rs.getBoolean("super"));
                 peers.add(peer);
             }
