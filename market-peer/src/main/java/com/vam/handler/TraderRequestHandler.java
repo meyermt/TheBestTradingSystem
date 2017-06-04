@@ -39,22 +39,26 @@ public class TraderRequestHandler implements Runnable {
             }
 
             TraderPeerRequest traderPeerRequest = gson.fromJson(traderInputBuilder.toString(),TraderPeerRequest.class);
-            if(traderPeerRequest.getMarket() == peer.getMarket()) {
+            TraderPeerResponse traderPeerResponse = null;
+            if(traderPeerRequest.getMarket().equals(peer.getMarket())) {
                     if(traderPeerRequest.getAction() == TraderAction.CONSULT) {
-                            peer.consultPrice();
-                    } else if ()
+                            traderPeerResponse = peer.consultPriceLocally(request);
+                    } else {
+                            traderPeerResponse = peer.transactLocally(request);
+                    }
+
+                pw.println(gson.toJson(traderPeerResponse));
+
+            } else {
+                    PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.FIND_MARKET,peer.getMarket(),
+                            request.getMarket(),request.getContinent(),traderPeerRequest,null,null,null);
+                    peer.processMarketAction(peerToPeerMessage);
             }
+
+
 
         } catch (IOException e) {
             throw new RuntimeException("Could not connect to trader in trader to peer request handler");
-        }
-
-
-            }
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 socket.close();

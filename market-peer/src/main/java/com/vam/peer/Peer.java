@@ -90,6 +90,46 @@ public class Peer{
         return continent;
     }
 
+    public TraderPeerResponse consultPriceLocally(TraderPeerRequest traderPeerRequest){
+        String stockName = traderPeerRequest.getStock().getStock();
+        double price = this.marketDAO.getPrice(stockName);
+        return new TraderPeerResponse(true, traderPeerRequest.getAction(),price,stockName,0,traderPeerRequest.getSourceIP(),
+                    traderPeerRequest.getSourcePort());
+    }
+
+    public TraderPeerResponse transactLocally(TraderPeerRequest traderPeerRequest){
+        String stockName = traderPeerRequest.getStock().getStock();
+        int shares = traderPeerRequest.getShares();
+        double priceRequested = traderPeerRequest.getPrice();
+        double price = this.marketDAO.getPrice(stockName);
+        if(priceRequested == price) {
+            if (traderPeerRequest.getAction() == TraderAction.BUY) {
+
+                int availableShares = this.marketDAO.getQuantity(stockName);
+                if (availableShares > shares) {
+                    this.marketDAO.updateQuantity(stockName, availableShares - shares);
+                    return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
+                            traderPeerRequest.getSourcePort());
+                } else {
+                    logger.info(stockName + " only has " + availableShares + ", but trader requests " + shares);
+                    return new TraderPeerResponse(false, traderPeerRequest.getAction(), price, stockName, availableShares, traderPeerRequest.getSourceIP(),
+                            traderPeerRequest.getSourcePort());
+                }
+            } else {
+                this.marketDAO.updateQuantity(stockName, this.marketDAO.getQuantity(stockName) + shares);
+                return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
+                        traderPeerRequest.getSourcePort());
+
+            }
+        } else {
+            logger.info("The price trader requested is "+priceRequested+" but the current price for"+stockName + " is "+price);
+            return new TraderPeerResponse(false, traderPeerRequest.getAction(),price,stockName,shares,traderPeerRequest.getSourceIP(),
+                    traderPeerRequest.getSourcePort());
+        }
+
+    }
+
+
     public void processMarketAction(PeerToPeerMessage message) {
 
     }
