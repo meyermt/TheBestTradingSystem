@@ -6,8 +6,8 @@ package com.vam.dao;
 public interface MarketDAO {
 
     double getPrice(String stock);
-    void insertPrice(String stock);
+    void updatePrice(String stock, double price);
     int getQuantity(String stock);
-    void insertQuantity(String stock);
+    void updateQuantity(String stock, int quantity);
 
 }
