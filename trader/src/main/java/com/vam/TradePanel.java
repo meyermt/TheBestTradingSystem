@@ -1,9 +1,6 @@
 package com.vam;
 
-import com.vam.json.Country;
-import com.vam.json.Stock;
-import com.vam.json.TraderAdminAction;
-import com.vam.json.TraderAdminRequest;
+import com.vam.json.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +30,7 @@ public class TradePanel extends JPanel {
     private JTextField mUsernameText;
     private JTextField mPasswordText;
     private JComboBox<String> mCountry;
+    private boolean isLoginValid;
 
     public TradePanel() {
 
@@ -127,10 +126,6 @@ public class TradePanel extends JPanel {
         }
     }
 
-    private boolean isLoginValid() {
-        return true;
-    }
-
     private void changeState() {
         removeAll();
         panel();
@@ -138,61 +133,62 @@ public class TradePanel extends JPanel {
         repaint();
     }
 
-
     private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String country= (String) mCountry.getSelectedItem();
             TraderAdminRequest request= new TraderAdminRequest("localhost",1346, TraderAdminAction.LOGIN,country,"");
             TraderAdminClient client = new TraderAdminClient("localhost",1347,request,"localhost",1346);
-
-            if (isLoginValid()) {
+            processLogin(client.getmResponse());
+            if (isLoginValid) {
                 mUsername = mUsernameText.getText();
                 mPassword = mPasswordText.getText();
-
                 ScreenState = 1;
                 changeState();
             } else {
                 JLabel problem = new JLabel("There's a problem with your login");
             }
         }
+
+
+        private void processLogin(AdminTraderResponse adminTraderResponse) {
+            if (adminTraderResponse.getCode().equals(AdminTraderResponseCode.OK)){
+                isLoginValid=true;
+            }
+            else if(adminTraderResponse.getCode().equals(AdminTraderResponseCode.NO_AVAILABLE_PEER)){
+                String sadMessage = JOptionPane.showInputDialog("No avaliable peers");
+            }
+            else {
+                System.out.println("Invalid action");
+            }
+        }
+
     }
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
+            (String traderName, TraderAction action, String stock,int shares){
+                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAdminAction.LOGIN, country, "");
+                TraderAdminClient client = new TraderAdminClient("localhost", 1347, request, "localhost", 1346);
 
-            if (isLoginValid()) {
-                ScreenState = 1;
-                changeState();
-            } else {
-                JLabel problem = new JLabel("There's a problem with your login");
+                processLogin(client.getmResponse());
+
+                if (isLoginValid) {
+                    ScreenState = 1;
+                    changeState();
+                } else {
+                    JLabel problem = new JLabel("There's a problem with your login");
+                }
             }
         }
     }
 
     private class SellListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-
-
-
-            if (isLoginValid()) {
-
-                ScreenState = 1;
-                changeState();
-            } else {
-                JLabel problem = new JLabel("There's a problem with your login");
-            }
         }
     }
 
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
 
-            if (isLoginValid()) {
-                ScreenState = 1;
-                changeState();
-            } else {
-                JLabel problem = new JLabel("There's a problem with your login");
-            }
-        }
-    }
+    }}
 }
