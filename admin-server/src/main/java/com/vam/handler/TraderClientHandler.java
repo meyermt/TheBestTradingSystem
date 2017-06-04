@@ -43,11 +43,13 @@ public class TraderClientHandler implements Runnable{
         try {
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-            System.out.println("Got here bf input");
-            String clientInput = input.readLine();
-            System.out.println("Got here after input");
+            StringBuilder clientInputBuilder = new StringBuilder();
+            String clientInput;
+            while ((clientInput = input.readLine()) != null) {
+                clientInputBuilder.append(clientInput);
+            }
             Gson gson = new Gson();
-            TraderAdminRequest request = gson.fromJson(clientInput, TraderAdminRequest.class);
+            TraderAdminRequest request = gson.fromJson(clientInputBuilder.toString(), TraderAdminRequest.class);
             System.out.println("Got here gson");
             processTraderReq(request, client);
             client.close();
