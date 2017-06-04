@@ -162,24 +162,6 @@ public class Peer{
 
 
     public void processMarketResponse(PeerToPeerMessage message) {
-        if(!isSuper){
-            sendResponseToTrader(message);
-        } else {
-            if(message.getTargetContinent().equals(this.continent)){
-                for(PeerData peerData : peerNetwork){
-                    if(peerData.getMarket().equals(message.getTargetMarket())){
-                        passMessageToPeer(message,peerData);
-                    }
-                }
-            } else {
-                superSendAlong(message);
-            }
-        }
-
-
-
-    }
-    public void sendResponseToTrader(PeerToPeerMessage message){
         TraderPeerRequest traderPeerRequest = message.getTraderRequest();
         TraderPeerResponse traderPeerResponse = message.getResponse();
         try {
