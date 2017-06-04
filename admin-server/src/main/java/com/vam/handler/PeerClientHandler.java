@@ -51,6 +51,7 @@ public class PeerClientHandler implements Runnable {
     private void processPeerReq(PeerAdminRequest request) {
         Socket client = tryClient(request);
         if (request.getAction() == PeerAdminAction.REGISTER_NETWORK) { // new network, so just wipe out old entries and add all new AND send back sps to superpeer
+            logger.info("a superpeer is registering their network");
             peersDB.deleteContinentPeers(request.getContinent()); // wipe out old local peer network
             List<PeerData> superPeers = peersDB.getSuperPeers(); // collect remaining superpeers
             request.getPeers().forEach(peer ->{
@@ -61,12 +62,14 @@ public class PeerClientHandler implements Runnable {
             AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, superPeers);
             sendResponse(client, response);
         } else if (request.getAction() == PeerAdminAction.ADD_PEER) {
+            logger.info("adding a new peer");
             request.getPeers().forEach(peer ->{
-                peersDB.insertPeer(peer.getIp(), peer.getPeerPort(), peer.getTraderPort(), , peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
+                peersDB.insertPeer(peer.getIp(), peer.getPeerPort(), peer.getTraderPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
             });
             AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, Collections.emptyList());
             sendResponse(client, response);
         } else if (request.getAction() == PeerAdminAction.DELETE_PEER) {
+            logger.info("deleting a peer");
             request.getPeers().forEach(peer ->{
                 peersDB.deleteMarketPeer(peer.getMarket());
             });
@@ -76,9 +79,9 @@ public class PeerClientHandler implements Runnable {
 
     private void sendResponse(Socket client, AdminPeerResponse response) {
         try {
+            logger.info("returning {} to peer", response.toString());
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-            //logger.info("sending response type: {} to {} ip and {} port", response.getCode(), response.getPeerIP(), response.getPeerPort());
             output.println(gson.toJson(response));
         } catch (IOException e) {
             throw new RuntimeException("Error sending response to trader", e);
@@ -87,6 +90,7 @@ public class PeerClientHandler implements Runnable {
 
     private Socket tryClient(PeerAdminRequest request) {
         try {
+            logger.info("received {} from peer", request.toString());
             Socket client = new Socket(request.getSourceIP(), request.getSourcePeerPort());
             return client;
         } catch (IOException e) {

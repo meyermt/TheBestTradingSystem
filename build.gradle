@@ -57,7 +57,7 @@ project(':market-peer') {
         version =  '0.1.0'
         manifest {
             attributes (
-                'Main-Class': 'com.vam.Main'
+                'Main-Class': 'com.vam.peer.Peer'
             )
         }
     }

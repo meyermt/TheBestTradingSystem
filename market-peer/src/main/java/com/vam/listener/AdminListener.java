@@ -1,6 +1,8 @@
 package com.vam.listener;
 
 import com.google.gson.Gson;
+import com.vam.json.AdminPeerResponse;
+import com.vam.json.AdminPeerResponseCode;
 import com.vam.json.PeerAdminRequest;
 import com.vam.peer.Peer;
 
@@ -34,13 +36,25 @@ public class AdminListener implements Runnable {
                 PrintWriter output = new PrintWriter(client.getOutputStream(), true);
                 // add API code here
                 // the below code is just for example, will change when API added.
-                String clientInput = input.readLine();
+                StringBuilder clientInputBuilder = new StringBuilder();
+                String clientInput;
+                while ((clientInput = input.readLine()) != null) {
+                    clientInputBuilder.append(clientInput);
+                }
                 Gson gson = new Gson();
-                PeerAdminRequest request = gson.fromJson(clientInput, PeerAdminRequest.class);
-                processPeerReq(request);
+                AdminPeerResponse response = gson.fromJson(clientInputBuilder.toString(), AdminPeerResponse.class);
+                processAdminResponse(response);
                 client.close();
             } catch (IOException e) {
                 throw new RuntimeException("Could not open client for admin listening", e);
+            }
+        }
+    }
+
+    private void processAdminResponse(AdminPeerResponse response) {
+        if (response.getCode() == AdminPeerResponseCode.OK) {
+            if (!response.getSuperpeers().isEmpty()) { // this implies you are a superpeer and are getting your list of other superpeers
+                peer.setSuperpeerNetwork(response.getSuperpeers());
             }
         }
     }
