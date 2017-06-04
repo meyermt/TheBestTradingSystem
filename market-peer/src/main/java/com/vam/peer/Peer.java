@@ -135,11 +135,32 @@ public class Peer{
                             if(peerData.getMarket() == marketName){
                                 String ip = peerData.getIp();
                                 int port = peerData.getPort();
-                                
+                                try{
+                                    Socket socket = new Socket(ip,port);
+                                    BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                                    PrintWriter pw = new PrintWriter(socket.getOutputStream(),true);
+                                    PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
+                                            0,stockName,0.0);
+                                    Gson gson = new Gson();
+                                    pw.println(gson.toJson(peerPeerRequest));
+                                    socket.setSoTimeout(1000);
+
+                                    PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(),PeerPeerResponse.class);
+                                    if(peerPeerResponse != null) {
+                                        return peerPeerResponse;
+                                    } else {
+                                        return new PeerPeerResponse(false,request.getAction(),0.0,stockName);
+                                    }
+
+
+                                } catch (IOException e){
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     } else {
                         //Talk to super peer
+                        
                     }
 
                 }
