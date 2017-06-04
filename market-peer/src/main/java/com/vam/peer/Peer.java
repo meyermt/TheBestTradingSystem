@@ -319,6 +319,7 @@ public class Peer{
 
 
             ServerSocket serverSocket = new ServerSocket(traderPort);
+            new Thread(traderListener).start();
             while (true) {
                 Socket socket = serverSocket.accept();
                 //TraderRequestHandler traderRequestHandler = new TraderRequestHandler(socket,this);
