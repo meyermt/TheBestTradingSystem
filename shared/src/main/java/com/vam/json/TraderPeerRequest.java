@@ -13,32 +13,22 @@ import java.util.Date;
 
 
 public class TraderPeerRequest {
-    private Date date;
-    private DateFormat dateFormat;
     private String trader;
+    private String sourceIP;
+    private int sourcePort;
     private TraderAction action;
     private String stock;
     private int shares;
 
     public TraderPeerRequest(){}
 
-    public TraderPeerRequest(String date, DateFormat dateFormat, String traderName, TraderAction action, String stock, int shares){
-        try{
-            this.date = dateFormat.parse(date);
+    public TraderPeerRequest(String traderName, String sourceIP,int sourcePort, TraderAction action, String stock, int shares){
             this.trader = traderName;
             this.action = action;
             this.stock = stock;
             this.shares = shares;
-
-        } catch (ParseException e){
-            e.printStackTrace();
-        }
-
     }
 
-    public Date getDate() {
-        return date;
-    }
 
     public String getTrader() {
         return trader;
