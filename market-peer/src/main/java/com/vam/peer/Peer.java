@@ -1,6 +1,7 @@
 package com.vam.peer;
 
 import com.google.gson.Gson;
+import com.vam.clock.DatabaseUpdater;
 import com.vam.dao.MarketDAO;
 import com.vam.dao.MarketDAOSQLLite;
 //import com.vam.handler.TraderRequestHandler;
@@ -185,65 +186,64 @@ public class Peer{
         }
     }
 
-    public PeerPeerResponse consultPrice(TraderPeerRequest request) {
-        TraderAction action = request.getAction();
-        String stockName = request.getStock().getStock();
-        String marketName = request.getStock().getMarket();
-
-        if (action != null && action == TraderAction.CONSULT) {
-            if (this.market == marketName) {
-                double price = this.marketDAO.getPrice(stockName);
-                return new PeerPeerResponse(true, action, price, stockName, 0);
-            } else {
-                if(!isSuper){
-                    try {
-                        Socket socket = new Socket(SUPER_IP,superPort);
-
-
-                } else {
-                    boolean isMyContinent = false;
-                    for (PeerData peerData : peerNetwork) {
-                        if (peerData.getMarket() == marketName) {
-                            isMyContinent = true;
-                            String ip = peerData.getIp();
-                            int port = peerData.getPeerPort();
-                            try {
-                                Socket socket = new Socket(ip, port);
-                                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-                                PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
-                                        0, stockName, 0.0);
-                                Gson gson = new Gson();
-                                pw.println(gson.toJson(peerPeerRequest));
-                                socket.setSoTimeout(1000);
-                                System.out.println("Timeout");
-                                PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
-                                if (peerPeerResponse != null) {
-                                    return peerPeerResponse;
-                                } else {
-                                    return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
-                                }
-
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                    if (isMyContinent == false) {
-
-                        //Talk to super peer
-
-                    }
-                }
-            }
-        }
-    }
+//    public PeerPeerResponse consultPrice(TraderPeerRequest request) {
+//        TraderAction action = request.getAction();
+//        String stockName = request.getStock().getStock();
+//        String marketName = request.getStock().getMarket();
+//
+//        if (action != null && action == TraderAction.CONSULT) {
+//            if (this.market == marketName) {
+//                double price = this.marketDAO.getPrice(stockName);
+//                return new PeerPeerResponse(true, action, price, stockName, 0);
+//            } else {
+//                if(!isSuper){
+//                    try {
+//                        Socket socket = new Socket(SUPER_IP,superPort);
+//
+//
+//                } else {
+//                    boolean isMyContinent = false;
+//                    for (PeerData peerData : peerNetwork) {
+//                        if (peerData.getMarket() == marketName) {
+//                            isMyContinent = true;
+//                            String ip = peerData.getIp();
+//                            int port = peerData.getPeerPort();
+//                            try {
+//                                Socket socket = new Socket(ip, port);
+//                                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                                PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+//                                PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
+//                                        0, stockName, 0.0);
+//                                Gson gson = new Gson();
+//                                pw.println(gson.toJson(peerPeerRequest));
+//                                socket.setSoTimeout(1000);
+//                                System.out.println("Timeout");
+//                                PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
+//                                if (peerPeerResponse != null) {
+//                                    return peerPeerResponse;
+//                                } else {
+//                                    return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
+//                                }
+//
+//
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                    if (isMyContinent == false) {
+//
+//                        //Talk to super peer
+//
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     public void sendUpdatedNetwork(){
             logger.info("new peer group membership available. Shipping it to everyone");
-            peerNetwork.stream()
-                    .forEach(peer -> {
+            peerNetwork.forEach(peer -> {
                         try {
                             Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
                             PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null,
@@ -364,6 +364,10 @@ public class Peer{
     public void start(){
 
         try {
+            // yep this is naively thinking that whenever it starts is the first time entry.
+            DatabaseUpdater updater = new DatabaseUpdater(marketDAO, this.getMarket(), PRICE_CSV);
+            new Thread(updater).start();
+
             ServerSocket adminSocket = new ServerSocket(adminPort);
             AdminListener adminListener = new AdminListener(this, adminSocket);
             new Thread(adminListener).start();
