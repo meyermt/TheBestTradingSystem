@@ -36,6 +36,8 @@ public class Peer{
     private static final String SUPER_ARG = "super";
     private static final String SUPER_PORT_ARG = "superPort";
     private static final String MY_IP = "127.0.0.1";
+    private static final String QTY_CSV = "qty_stocks.csv";
+    private static final String PRICE_CSV = "price_stocks.csv";
 
     private static final Logger logger = LoggerFactory.getLogger(Peer.class);
     private static DateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm");
