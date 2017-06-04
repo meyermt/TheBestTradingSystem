@@ -136,7 +136,6 @@ public class Peer{
         TraderPeerRequest traderPeerRequest = message.getTraderRequest();
         String sourceContinent = traderPeerRequest.getContinent();
         if(traderPeerRequest.getAction() == TraderAction.CONSULT){
-<<<<<<< HEAD
         TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
         peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
                 traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
@@ -157,15 +156,7 @@ public class Peer{
             }
         } else {
             passMessageToSuper(peerToPeerMessage, superPort);
-=======
-            TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
-            peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
-                    traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
-        } else {
-            TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
-            peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),
-                    traderPeerRequest,traderPeerResponse,null,null);
->>>>>>> b739a17d9f5bb7f9b9103f9d956dddd01394c394
+
         }
     }
 
@@ -318,11 +309,6 @@ public class Peer{
         return this.market;
     }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> b739a17d9f5bb7f9b9103f9d956dddd01394c394
 
     public void start(){
 
