@@ -13,20 +13,19 @@ import java.util.Date;
 
 
 public class TraderPeerRequest {
-
-
     private String trader;
+    private String sourceIP;
+    private int sourcePort;
     private TraderAction action;
     private String stock;
     private int shares;
 
 
-    public TraderPeerRequest(TraderAction action, String stock, int shares){
-
+    public TraderPeerRequest(String traderName, String sourceIP,int sourcePort, TraderAction action, String stock, int shares){
+            this.trader = traderName;
             this.action = action;
             this.stock = stock;
             this.shares = shares;
-
     }
 
 
