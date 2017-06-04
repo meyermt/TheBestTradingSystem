@@ -30,13 +30,13 @@ public class TraderListener implements Runnable {
     @Override
     public void run() {
         while (!exit) {
-                try {
-                    Socket client = traderSocket.accept();
-                    TraderRequestHandler handler = new TraderRequestHandler(client,peer);
-                    new Thread(handler).start();
-                } catch (IOException e) {
-                    throw new RuntimeException("Could not open peer for trader listening", e);
-                }
+            try {
+                Socket client = traderSocket.accept();
+                TraderRequestHandler handler = new TraderRequestHandler(client,peer);
+                new Thread(handler).start();
+            } catch (IOException e) {
+                throw new RuntimeException("Could not open peer for trader listening", e);
+            }
         }
     }
 

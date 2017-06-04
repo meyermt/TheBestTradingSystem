@@ -1,6 +1,7 @@
 package com.vam.peer;
 
 import com.google.gson.Gson;
+import com.vam.clock.DatabaseUpdater;
 import com.vam.dao.MarketDAO;
 import com.vam.dao.MarketDAOSQLLite;
 //import com.vam.handler.TraderRequestHandler;
@@ -94,7 +95,7 @@ public class Peer{
         String stockName = traderPeerRequest.getStock().getStock();
         double price = this.marketDAO.getPrice(stockName);
         return new TraderPeerResponse(true, traderPeerRequest.getAction(),price,stockName,0,traderPeerRequest.getSourceIP(),
-                    traderPeerRequest.getSourcePort());
+                traderPeerRequest.getSourcePort());
     }
 
     public TraderPeerResponse transactLocally(TraderPeerRequest traderPeerRequest){
@@ -135,6 +136,7 @@ public class Peer{
         TraderPeerRequest traderPeerRequest = message.getTraderRequest();
         String sourceContinent = traderPeerRequest.getContinent();
         if(traderPeerRequest.getAction() == TraderAction.CONSULT){
+<<<<<<< HEAD
         TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
         peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
                 traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
@@ -155,6 +157,15 @@ public class Peer{
             }
         } else {
             passMessageToSuper(peerToPeerMessage, superPort);
+=======
+            TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
+            peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
+                    traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
+        } else {
+            TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
+            peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),
+                    traderPeerRequest,traderPeerResponse,null,null);
+>>>>>>> b739a17d9f5bb7f9b9103f9d956dddd01394c394
         }
     }
 
@@ -280,12 +291,9 @@ public class Peer{
         }
     }
 
-
-
     public void sendUpdatedNetwork(){
             logger.info("new peer group membership available. Shipping it to everyone");
-            peerNetwork.stream()
-                    .forEach(peer -> {
+            peerNetwork.forEach(peer -> {
                         try {
                             Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
                             PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null,
@@ -310,12 +318,19 @@ public class Peer{
         return this.market;
     }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> b739a17d9f5bb7f9b9103f9d956dddd01394c394
 
     public void start(){
 
         try {
+            // yep this is naively thinking that whenever it starts is the first time entry.
+            DatabaseUpdater updater = new DatabaseUpdater(marketDAO, this.getMarket(), PRICE_CSV);
+            new Thread(updater).start();
+
             ServerSocket adminSocket = new ServerSocket(adminPort);
             AdminListener adminListener = new AdminListener(this, adminSocket);
             new Thread(adminListener).start();
