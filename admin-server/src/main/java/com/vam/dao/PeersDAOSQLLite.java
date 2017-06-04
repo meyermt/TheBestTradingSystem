@@ -48,15 +48,15 @@ public class PeersDAOSQLLite implements PeersDAO {
 
     public void initSPEntries() {
         // once distributed would need to update the IPs
-        insertPeer(IP, 8091, "America", "USA", "New York Stock Exchange", true);
-        insertPeer(IP, 8092, "Asia", "Japan", "Tokyo", true);
-        insertPeer(IP, 8093, "Europe", "France", "Euronext Paris", true);
-        insertPeer(IP, 8094, "Africa", "South Africa", "Johannesburg", true);
+        insertPeer(IP, 8091, 9091, "America", "USA", "New York Stock Exchange", true);
+        insertPeer(IP, 8094, 9094, "Asia", "Japan", "Tokyo", true);
+        insertPeer(IP, 8092, 9092, "Europe", "France", "Euronext Paris", true);
+        insertPeer(IP, 8093, 9093, "Africa", "South Africa", "Johannesburg", true);
     }
 
-    public void insertPeer(String ip, int port, String continent, String country, String market, boolean isSuper) {
+    public void insertPeer(String ip, int peerPort, int traderPort, String continent, String country, String market, boolean isSuper) {
         String delSql = "DELETE FROM peers WHERE market = ?";
-        String sql = "INSERT INTO peers(ip, port, continent, country, market, super) VALUES(?,?,?,?,?,?)";
+        String sql = "INSERT INTO peers(ip, peerPort, traderPort, continent, country, market, super) VALUES(?,?,?,?,?,?,?)";
 
         try (Connection conn = this.connect(DB_NAME);
              PreparedStatement pstmt = conn.prepareStatement(delSql)) {
@@ -69,11 +69,12 @@ public class PeersDAOSQLLite implements PeersDAO {
         try (Connection conn = this.connect(DB_NAME);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, ip);
-            pstmt.setInt(2, port);
-            pstmt.setString(3, continent);
-            pstmt.setString(4, country);
-            pstmt.setString(5, market);
-            pstmt.setBoolean(6, isSuper);
+            pstmt.setInt(2, peerPort);
+            pstmt.setInt(3, traderPort);
+            pstmt.setString(4, continent);
+            pstmt.setString(5, country);
+            pstmt.setString(6, market);
+            pstmt.setBoolean(7, isSuper);
             pstmt.executeUpdate();
             logger.info("backing up peer database");
             Files.copy(dbFile.toPath(), backupFile, StandardCopyOption.REPLACE_EXISTING);
@@ -84,20 +85,8 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<PeerData> getAllPeers() {
-        String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME;
-        try (Connection conn = this.connect(DB_NAME);
-             Statement stmt  = conn.createStatement();
-             ResultSet rs    = stmt.executeQuery(sql)){
-
-            return collectPeers(rs);
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to retrieve stocks in stock db.", e);
-        }
-    }
-
     public List<PeerData> getSuperPeers() {
-        String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
+        String sql = "SELECT id, ip, peerPort, continent, country, market, super FROM " + DB_NAME +
                 " WHERE super = 1";
         try (Connection conn = this.connect(DB_NAME);
              Statement stmt  = conn.createStatement();
@@ -109,19 +98,13 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
-    public List<PeerData> getContinentPeers(String continent) {
-        String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
-                " WHERE continent = ?";
-        return getPeerOneWhere(sql, continent);
-    }
-
     /**
      *
      * @param country
      * @return
      */
     public List<PeerData> getCountryPeers(String country) {
-        String sql = "SELECT id, ip, port, continent, country, market, super FROM " + DB_NAME +
+        String sql = "SELECT id, ip, traderPort, continent, country, market, super FROM " + DB_NAME +
                 " WHERE country = ?";
         return getPeerOneWhere(sql, country);
     }
@@ -214,7 +197,8 @@ public class PeersDAOSQLLite implements PeersDAO {
         String peers = "CREATE TABLE IF NOT EXISTS " + DB_NAME + " (\n"
                 + "	id integer PRIMARY KEY,\n"
                 + " ip text NOT NULL,\n"
-                + " port integer NOT NULL,\n"
+                + " peerPort integer NOT NULL,\n"
+                + " traderPort integer NOT NULL,\n"
                 + "	continent text NOT NULL,\n"
                 + "	country text NOT NULL,\n"
                 + " market text NOT NULL,\n"

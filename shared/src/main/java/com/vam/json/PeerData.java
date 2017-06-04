@@ -6,7 +6,8 @@ package com.vam.json;
 public class PeerData {
 
     private String ip;
-    private int port;
+    private int peerPort;
+    private int traderPort;
     private String continent;
     private String country;
     private String market;
@@ -14,9 +15,10 @@ public class PeerData {
 
     public PeerData() {}
 
-    public PeerData(String ip, int port, String continent, String country, String market, boolean isSuper) {
+    public PeerData(String ip, int peerPort, int traderPort, String continent, String country, String market, boolean isSuper) {
         this.ip = ip;
-        this.port = port;
+        this.peerPort = peerPort;
+        this.traderPort = traderPort;
         this.continent = continent;
         this.country = country;
         this.market = market;
@@ -25,9 +27,10 @@ public class PeerData {
 
     @Override
     public String toString() {
-        return "Peer{" +
+        return "PeerData{" +
                 "ip='" + ip + '\'' +
-                ", port=" + port +
+                ", peerPort=" + peerPort +
+                ", traderPort=" + traderPort +
                 ", continent='" + continent + '\'' +
                 ", country='" + country + '\'' +
                 ", market='" + market + '\'' +
@@ -35,12 +38,16 @@ public class PeerData {
                 '}';
     }
 
-    public String getIp() {
-        return ip;
+    public int getPeerPort() {
+        return peerPort;
     }
 
-    public int getPort() {
-        return port;
+    public int getTraderPort() {
+        return traderPort;
+    }
+
+    public String getIp() {
+        return ip;
     }
 
     public String getContinent() {

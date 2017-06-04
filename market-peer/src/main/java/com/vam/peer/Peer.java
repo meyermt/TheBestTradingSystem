@@ -56,8 +56,12 @@ public class Peer{
     private String country;
     private String market;
     private boolean isSuper;
-    private Map<String, Stock> stockMap;
+    private List<PeerData> peers = Collections.emptyList();
+    private List<PeerData> superpeers = Collections.emptyList();
     private MarketDAO marketDAO;
+    private Map<String, Integer> contMap;
+    private int leftPort = 0;
+    private int rightPort = 0;
 
     public Peer(int port, String continent, String country, String market, boolean isSuper, int superPort){
 
@@ -67,7 +71,6 @@ public class Peer{
         this.market = market;
         this.isSuper = isSuper;
         this.superPort = superPort;
-        this.stockMap = new HashMap<>();
         this.marketDAO = new MarketDAOSQLLite(QTY_CSV, PRICE_CSV, market);
     }
 
@@ -96,20 +99,28 @@ public class Peer{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-
     }
 
-    public void connectAdmin(){
+    public void registerWithAdminServer(){
+        try {
+            ServerSocket serverSocket = new ServerSocket(ADMIN_PORT);
+            while (true) {
 
+                Socket socket = serverSocket.accept();
+                socket.setSoTimeout(10000);
+
+                Gson gson = new Gson();
+                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+
+                PeerAdminRequest registration = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, continent,
+                        country, market, peers, MY_IP, port);
+                pw.println(gson.toJson(registration));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
-
-    public Map<String, Stock> getStockMap(){
-        return this.stockMap;
-    }
-
 
     public TraderPeerResponse consult(TraderPeerRequest request){
         TraderAction action = request.getAction();
@@ -139,7 +150,15 @@ public class Peer{
 
     public void start(){
 
-        registerWithSuperPeer();
+        ServerSocket adminSocket = new ServerSocket()
+        this.contMap = mapContinent();
+        if (!isSuper) {
+            registerWithSuperPeer();
+        } else {
+            this.leftPort = contMap.get(continent + "-left");
+            this.rightPort = contMap.get(continent + "-right");
+            registerWithAdminServer();
+        }
 
 
         try {
@@ -242,6 +261,19 @@ public class Peer{
             formatter.printHelp("admin server help", options);
             throw new RuntimeException("Unable to read arguments, see help.");
         }
+    }
+
+    private static Map<String, Integer> mapContinent() {
+        Map<String, Integer> contMap = new HashMap<>();
+        contMap.put("America-left", 0);
+        contMap.put("America-right", 8092)
+        contMap.put("Europe-left", 8091);
+        contMap.put("Europe-right", 8093);
+        contMap.put("Africa-left", 8093);
+        contMap.put("Africa-right", 8094);
+        contMap.put("Asia-left", 8093);
+        contMap.put("Asia-right", 0);
+        return contMap;
     }
 
 }

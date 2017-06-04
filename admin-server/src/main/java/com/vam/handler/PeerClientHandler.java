@@ -55,7 +55,7 @@ public class PeerClientHandler implements Runnable {
             List<PeerData> superPeers = peersDB.getSuperPeers(); // collect remaining superpeers
             request.getPeers().forEach(peer ->{
                 // TODO: need to confirm that the super peer will NOT send themselves in this list of peers in their registered network
-                peersDB.insertPeer(peer.getIp(), peer.getPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
+                peersDB.insertPeer(peer.getIp(), peer.getPeerPort(), peer.getTraderPort(), peer.getContinent(), peer.getCountry(), peer.getMarket(), false);
             });
             peersDB.insertPeer(request.getSourceIP(), request.getSourcePort(), request.getContinent(), request.getCountry(), request.getMarket(), true);// assumes sp doesn't send themselves in list
             AdminPeerResponse response = new AdminPeerResponse(AdminPeerResponseCode.OK, superPeers);
