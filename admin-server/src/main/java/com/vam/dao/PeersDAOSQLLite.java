@@ -49,7 +49,7 @@ public class PeersDAOSQLLite implements PeersDAO {
         String sql = "INSERT INTO peers(ip, port, continent, country, market, super) VALUES(?,?,?,?,?,?)";
 
         try (Connection conn = this.connect(DB_NAME);
-            PreparedStatement pstmt = conn.prepareStatement(delSql)) {
+             PreparedStatement pstmt = conn.prepareStatement(delSql)) {
             pstmt.setString(1, market);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -118,7 +118,7 @@ public class PeersDAOSQLLite implements PeersDAO {
 
     private List<PeerData> getPeerOneWhere(String sql, String clause) {
         try (Connection conn = this.connect(DB_NAME);
-            PreparedStatement pstmt  = conn.prepareStatement(sql)){
+             PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1, clause);
             ResultSet rs    = pstmt.executeQuery();
 
