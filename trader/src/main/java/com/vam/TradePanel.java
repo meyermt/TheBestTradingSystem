@@ -1,10 +1,10 @@
 package com.vam;
 
 import com.vam.json.*;
-import org.omg.CORBA.PRIVATE_MEMBER;
+
 
 import javax.swing.*;
-import javax.xml.bind.PrintConversionEvent;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -101,6 +101,11 @@ public class TradePanel extends JPanel {
 
             JLabel stock = new JLabel("Stock:");
             stockValue = new JComboBox<String>();
+
+            for (Stock c : mLoginResult.getStocks()) {
+                mCountry.addItem(c.getStock());
+            }
+
             JLabel price = new JLabel("Price($):");
             priceValue = new JTextField(15);
             JLabel quantity = new JLabel("Quantity");
@@ -177,10 +182,7 @@ public class TradePanel extends JPanel {
             if(client.getmResponse() instanceof TraderPeerResponse){
                     mCurrentConsResult=(TraderPeerResponse)client.getmResponse();
             }
-            stockValue.setSelectedItem(mCurrentConsResult.getStockName());
-            priceValue.setText(""+mCurrentConsResult.getPrice());
-            priceValue.setEditable(false);
-            repaint();
+            processResult("consult");
             }
     }
 
@@ -200,7 +202,7 @@ public class TradePanel extends JPanel {
             if(client.getmResponse() instanceof TraderPeerResponse){
                 mLastSaleResult=(TraderPeerResponse)client.getmResponse();
             }
-            refreshFields();
+            processResult("sell");
         }
     }
 
@@ -227,8 +229,45 @@ public class TradePanel extends JPanel {
                 if(client.getmResponse() instanceof TraderPeerResponse){
                     mLastSaleResult=(TraderPeerResponse)client.getmResponse();
                 }
+                processResult("buy");
+            }
+    }
+
+    private void processResult(String process) {
+        if (process.equals("consult")) {
+
+            if(mCurrentConsResult.succeed()){
+                stockValue.setSelectedItem(mCurrentConsResult.getStockName());
+                priceValue.setText("" + mCurrentConsResult.getPrice());
+                priceValue.setEditable(false);
                 refreshFields();
             }
+            else{
+          JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+          repaint();
+            }
+        }
+        else if (process.equals("sell")){
+            if(mLastSaleResult.succeed()){
+                refreshFields();
+            }
+            else{
+                JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+                repaint();
+            }
+        }
+        else if (process.equals("buy")){
+            if(mLastSaleResult.succeed()){
+                refreshFields();
+            }
+            else{
+                JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+                repaint();
+            }
+        }
+        else{
+            throw new IllegalStateException("Process must be consult, sell or buy");
+        }
     }
 }
 
