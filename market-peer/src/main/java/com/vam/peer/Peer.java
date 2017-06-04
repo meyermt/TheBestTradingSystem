@@ -86,7 +86,7 @@ public class Peer{
         try {
             Socket peerClient = new Socket("127.0.0.1", superPort);
             PeerData me = new PeerData(MY_IP, peerPort, traderPort, continent, country, market, false);
-            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.JOIN_PEER_NETWORK, me, Collections.emptyList());
+            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.JOIN_PEER_NETWORK, null, me, Collections.emptyList());
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
             output.println(gson.toJson(request));
@@ -129,7 +129,7 @@ public class Peer{
                 .forEach(peer -> {
                     try {
                         Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
-                        PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null, peerNetwork);
+                        PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null,null, peerNetwork);
                         Gson gson = new Gson();
                         PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
                         output.println(gson.toJson(request));

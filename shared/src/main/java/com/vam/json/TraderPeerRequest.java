@@ -14,23 +14,59 @@ import java.util.Date;
 
 public class TraderPeerRequest {
 
-
+    private String sourceIP;
+    private int sourcePort;
     private TraderAction action;
     private Stock stock;
+    private String continent;
+    private String market;
     private int shares;
     private double price;
 
-
-    public TraderPeerRequest(TraderAction action, Stock stock, double price, int shares){
-
+    public TraderPeerRequest(String sourceIP, int sourcePort, TraderAction action, Stock stock, String continent, String market, int shares, double price) {
+        this.sourceIP = sourceIP;
+        this.sourcePort = sourcePort;
         this.action = action;
         this.stock = stock;
+        this.continent = continent;
+        this.market = market;
         this.shares = shares;
         this.price = price;
-
     }
 
+    @Override
+    public String toString() {
+        return "TraderPeerRequest{" +
+                "sourceIP='" + sourceIP + '\'' +
+                ", sourcePort=" + sourcePort +
+                ", action=" + action +
+                ", stock=" + stock +
+                ", continent='" + continent + '\'' +
+                ", market='" + market + '\'' +
+                ", shares=" + shares +
+                ", price=" + price +
+                '}';
+    }
 
+    public String getSourceIP() {
+        return sourceIP;
+    }
+
+    public int getSourcePort() {
+        return sourcePort;
+    }
+
+    public String getContinent() {
+        return continent;
+    }
+
+    public String getMarket() {
+        return market;
+    }
+
+    public double getPrice() {
+        return price;
+    }
 
     public TraderAction getAction() {
         return action;
