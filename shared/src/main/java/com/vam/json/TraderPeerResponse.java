@@ -8,15 +8,19 @@ public class TraderPeerResponse {
     private boolean succeed;
     private TraderAction action;
     private double price;
+    private String stock;
+    private int shares;
+    private String targetIP;
+    private int targetPort;
 
-
-    private String stockName;
-
-    public TraderPeerResponse(boolean succeed, TraderAction action, double price,String stockName){
+    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock, int shares,String targetIP, int targetPort){
         this.succeed = succeed;
         this.action = action;
         this.price = price;
-        this.stockName=stockName;
+        this.stock = stock;
+        this.shares = shares;
+        this.targetIP = targetIP;
+        this.targetPort = targetPort;
     }
 
 
@@ -34,6 +38,7 @@ public class TraderPeerResponse {
     public TraderAction getAction(){
         return this.action;
     }
+
 
     public String toString(){
         if(this.action == TraderAction.CONSULT){

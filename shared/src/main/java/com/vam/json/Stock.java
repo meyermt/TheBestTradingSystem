@@ -46,6 +46,14 @@ public class Stock {
         this.isFund=fund;
     }
 
+    public Stock(String continent, String country, String market, String stock) {
+        this.continent = continent;
+        this.country = country;
+        this.market = market;
+        this.stock = stock;
+        this.isFund=false;
+    }
+
 
     public Stock(String stock, double price) {
         this.stock = stock;

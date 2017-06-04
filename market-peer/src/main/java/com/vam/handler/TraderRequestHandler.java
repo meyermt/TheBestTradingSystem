@@ -6,10 +6,13 @@ import java.net.Socket;
 import com.google.gson.*;
 import com.vam.json.*;
 import com.vam.peer.Peer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class TraderRequestHandler implements Runnable {
 
+    private Logger logger = LoggerFactory.getLogger(TraderRequestHandler.class);
     private Socket socket;
     private Peer peer;
 
@@ -27,31 +30,34 @@ public class TraderRequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
             TraderPeerRequest request = null;
-            PeerSPRequest peerRequest = null;
-            PeerSPResponse peerResponse = null;
-            while (true) {
-                //Get request from trader
-                request = gson.fromJson(br.readLine(), TraderPeerRequest.class);
-
-
-
-                //Process request
-                if(peerRequest.getAction() == TraderAction.CONSULT){
-                    peerResponse = peer.consult(peerRequest);
-                } else {
-                    peerResponse = peer.transact(peerRequest);
-                }
-
-                TraderPeerResponse traderResponse = new TraderPeerResponse(peerResponse.isSucceed(),
-                        peerResponse.getAction(),peerResponse.getPrice());
-
-                //Send back response
-                pw.println(gson.toJson(traderResponse));
-
+            TraderPeerResponse response = null;
+            StringBuilder traderInputBuilder = new StringBuilder();
+            String traderInput;
+            while ((traderInput = br.readLine()) != null) {
+                    traderInputBuilder.append(traderInput);
             }
 
+            TraderPeerRequest traderPeerRequest = gson.fromJson(traderInputBuilder.toString(),TraderPeerRequest.class);
+            TraderPeerResponse traderPeerResponse = null;
+            if(traderPeerRequest.getMarket().equals(peer.getMarket())) {
+                    if(traderPeerRequest.getAction() == TraderAction.CONSULT) {
+                            traderPeerResponse = peer.consultPriceLocally(request);
+                    } else {
+                            traderPeerResponse = peer.transactLocally(request);
+                    }
+
+                pw.println(gson.toJson(traderPeerResponse));
+
+            } else {
+                    PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.FIND_MARKET,peer.getMarket(),
+                            request.getMarket(),request.getContinent(),traderPeerRequest,null,null,null);
+                    peer.processMarketAction(peerToPeerMessage);
+            }
+
+
+
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Could not connect to trader in trader to peer request handler");
         } finally {
             try {
                 socket.close();
