@@ -69,6 +69,7 @@ public class Peer{
     private Map<String, Integer> contMap;
     private int leftPort = 0;
     private int rightPort = 0;
+    private List<Transaction> transactionList = new ArrayList<>();
 
     public Peer(int traderPort, int peerPort, String continent, String country, String market, boolean isSuper, int superPort, int adminPort){
 
@@ -103,12 +104,15 @@ public class Peer{
         int shares = traderPeerRequest.getShares();
         double priceRequested = traderPeerRequest.getPrice();
         double price = this.marketDAO.getPrice(stockName);
+        Transaction transaction = null;
         if(priceRequested == price) {
             if (traderPeerRequest.getAction() == TraderAction.BUY) {
 
                 int availableShares = this.marketDAO.getQuantity(stockName);
                 if (availableShares > shares) {
                     this.marketDAO.updateQuantity(stockName, availableShares - shares);
+                    transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
+                    transactionList.add(transaction);
                     return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
                             traderPeerRequest.getSourcePort());
                 } else {
@@ -118,10 +122,14 @@ public class Peer{
                 }
             } else {
                 this.marketDAO.updateQuantity(stockName, this.marketDAO.getQuantity(stockName) + shares);
+                transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
+                transactionList.add(transaction);
                 return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
                         traderPeerRequest.getSourcePort());
 
             }
+
+
         } else {
             logger.info("The price trader requested is "+priceRequested+" but the current price for"+stockName + " is "+price);
             return new TraderPeerResponse(false, traderPeerRequest.getAction(),price,stockName,shares,traderPeerRequest.getSourceIP(),
@@ -134,7 +142,6 @@ public class Peer{
 
         PeerToPeerMessage peerToPeerMessage = null;
         TraderPeerRequest traderPeerRequest = message.getTraderRequest();
-        String sourceContinent = traderPeerRequest.getContinent();
         if(traderPeerRequest.getAction() == TraderAction.CONSULT){
         TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
         peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
@@ -291,6 +298,10 @@ public class Peer{
         return this.market;
     }
 
+    public List<Transaction> getTransactionList(){
+        return this.transactionList;
+    }
+
 
     public void start(){
 
@@ -316,10 +327,12 @@ public class Peer{
                 registerNetworkWithAdminServer();
             }
 
-
-
             ServerSocket serverSocket = new ServerSocket(traderPort);
             TraderListener traderListener = new TraderListener(this,serverSocket);
+            new Thread(traderListener).start();
+
+            PrintTransactionThread printTransactionThread = new PrintTransactionThread(this);
+            new Thread(printTransactionThread).start();
 
         } catch (IOException e) {
             e.printStackTrace();
