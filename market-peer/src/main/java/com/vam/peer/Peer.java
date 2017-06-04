@@ -129,12 +129,24 @@ public class Peer{
 
     }
 
-
     public void processMarketAction(PeerToPeerMessage message) {
+
+        TraderPeerRequest traderPeerRequest = message.getTraderRequest();
+        if(traderPeerRequest.getAction() == TraderAction.CONSULT){
+            TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
+            PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
+                    traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
+                } else {
+                    TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
+
+                }
+            }
 
     }
 
     public void processMarketResponse(PeerToPeerMessage message) {
+        TraderPeerRequest traderPeerRequest = message.getTraderRequest();
+        TraderPeerResponse traderPeerResponse = message.getResponse();
 
     }
 
