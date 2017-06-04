@@ -55,6 +55,7 @@ public class PeersDAOSQLLite implements PeersDAO {
     }
 
     public void insertPeer(String ip, int peerPort, int traderPort, String continent, String country, String market, boolean isSuper) {
+        logger.info("inserting market peer {}", market);
         String delSql = "DELETE FROM peers WHERE market = ?";
         String sql = "INSERT INTO peers(ip, peerPort, traderPort, continent, country, market, super) VALUES(?,?,?,?,?,?,?)";
 

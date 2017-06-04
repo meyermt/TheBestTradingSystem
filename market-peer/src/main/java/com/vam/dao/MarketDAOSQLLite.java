@@ -1,17 +1,13 @@
 package com.vam.dao;
 
-import com.vam.json.Stock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.jvm.hotspot.oops.Mark;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by michaelmeyer on 6/3/17.
@@ -44,7 +40,7 @@ public class MarketDAOSQLLite implements MarketDAO {
     }
 
     public void insertStock(String stock, double price, int quantity) {
-        String sql = "INSERT INTO market(stock, price, qunatity) VALUES(?,?,?)";
+        String sql = "INSERT INTO market(stock, price, quantity) VALUES(?,?,?)";
 
         try (Connection conn = this.connect(DB_NAME);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -155,6 +151,12 @@ public class MarketDAOSQLLite implements MarketDAO {
             String[] rawQuantity = reader1.readLine().split(","); // read qty
             for (int i = 0; i < rawMarkets.length; i++) {
                 if (rawMarkets[i].equals(marketName)) {
+                    if (rawPriceOne[i].equals("")) {
+                        rawPriceOne[i] = "0";
+                    }
+                    if (rawQuantity[i].equals("")) {
+                        rawQuantity[i] = "0";
+                    }
                     insertStock(rawStocks[i], Double.parseDouble(rawPriceOne[i]), Integer.parseInt(rawQuantity[i]));
                 }
             }

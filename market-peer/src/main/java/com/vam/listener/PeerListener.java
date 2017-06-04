@@ -1,6 +1,7 @@
 package com.vam.listener;
 
 import com.google.gson.Gson;
+import com.vam.handler.PeerToPeerRequestHandler;
 import com.vam.json.*;
 import com.vam.peer.Peer;
 
@@ -31,30 +32,11 @@ public class PeerListener implements Runnable {
         while (!exit) {
             try {
                 Socket client = peerServerSocket.accept();
-                BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-                // add API code here
-                // the below code is just for example, will change when API added.
-                StringBuilder clientInputBuilder = new StringBuilder();
-                String clientInput;
-                while ((clientInput = input.readLine()) != null) {
-                    clientInputBuilder.append(clientInput);
-                }
-                Gson gson = new Gson();
-                PeerToPeerMessage message = gson.fromJson(clientInputBuilder.toString(), PeerToPeerMessage.class);
-                processPeerResponse(message);
-                client.close();
+                PeerToPeerRequestHandler handler = new PeerToPeerRequestHandler(client, peer);
+                new Thread(handler).start();
             } catch (IOException e) {
                 throw new RuntimeException("Could not open client for admin listening", e);
             }
-        }
-    }
-
-    private void processPeerResponse(PeerToPeerMessage message) {
-        if (message.getAction() == PeerToPeerAction.JOIN_PEER_NETWORK) {
-            peer.addPeerToNetwork(message.getPeerData());
-        } else if (message.getAction() == PeerToPeerAction.UPDATE_PEER_NETWORK) {
-            peer.updateMyNetwork(message.getPeerNetwork());
         }
     }
 
