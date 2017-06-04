@@ -39,7 +39,7 @@ public class Peer{
 
     private static final Logger logger = LoggerFactory.getLogger(Peer.class);
     private static DateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm");
-    private static final ExecutorService pool = Executors.newFixedThreadPool(5);
+    private static final ExecutorService pool = Executors.newCachedThreadPool();
 
     private static String ADMIN_IP = "127.0.0.1"; // yes, we would never do this if we weren't running just locally
     private static int ADMIN_PORT = 8090;
@@ -65,6 +65,7 @@ public class Peer{
         this.market = market;
         this.isSuper = isSuper;
         this.superPort = superPort;
+        this.stockMap = new HashMap<>();
 
     }
 
@@ -73,36 +74,23 @@ public class Peer{
             try {
                 ServerSocket serverSocket = new ServerSocket(superPort);
                 while (true) {
+
                     Socket socket = serverSocket.accept();
+
                     Gson gson = new Gson();
                     BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-                    PeerRequest = null;
-                    PeerRequest peerRequest = null;
-                    PeerResponse peerResponse = null;
-                    while (true) {
-                        //Get request from trader
-                        request = gson.fromJson(br.readLine(), TraderPeerRequest.class);
 
-                        peerRequest = new PeerRequest(request.getDate(),request.getTrader(),request.getAction(),
-                                request.getStock(),request.getShares());
+                    PeerSPRequest registration = new PeerSPRequest(this.market,this.stockMap);
+                    pw.println(registration);
+                    socket.setSoTimeout(10000);
+                    logger.info("Having trouble connecting to the super peer");
+                    connectAdmin();
+
+                    String lines = br.readLine();
+                    gson.fromJson(lines,)
 
 
-                        //Process request
-                        if(peerRequest.getAction() == TraderAction.CONSULT){
-                            peerResponse = peer.consult(peerRequest);
-                        } else {
-                            peerResponse = peer.transact(peerRequest);
-                        }
-
-                        TraderPeerResponse traderResponse = new TraderPeerResponse(peerResponse.isSucceed(),
-                                peerResponse.getAction(),peerResponse.getPrice());
-
-                        //Send back response
-                        pw.println(gson.toJson(traderResponse));
-
-                    }
-                    pool.submit(traderRequestHandler);
 
                 }
             } catch (IOException e) {
@@ -110,6 +98,10 @@ public class Peer{
             }
 
 
+
+    }
+
+    public void connectAdmin(){
 
     }
 
@@ -122,32 +114,32 @@ public class Peer{
 
 
     //Still working on
-    public PeerResponse consult(PeerRequest request){
+    public PeerSPResponse consult(PeerSPRequest request){
         TraderAction action = request.getAction();
         String stockName = request.getStock();
         if(action != null && action == TraderAction.CONSULT) {
             if (stockMap.containsKey(stockName)) {
                 Stock stock = stockMap.get(stockName);
                 double price = stock.getPrice();
-                return new PeerResponse(true, action, price);
+                return new PeerSPResponse(true, action, price);
             } else {
                 //Ask super peer
                 //Todo
 
             }
         } else {
-            return new PeerResponse();
+            return new PeerSPResponse();
         }
-        return new PeerResponse();
+        return new PeerSPResponse();
     }
 
     //Still working on
-    public PeerResponse transact(PeerRequest request) {
+    public PeerSPResponse transact(PeerSPRequest request) {
         TraderAction action = request.getAction();
         String stockName = request.getStock();
         int shares = request.getShares();
 
-        return new PeerResponse();
+        return new PeerSPResponse();
         //Todo
     }
 
