@@ -9,12 +9,14 @@ public class TraderPeerResponse {
     private TraderAction action;
     private double price;
     private String stock;
+    private int shares;
 
-    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock){
+    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock, int shares){
         this.succeed = succeed;
         this.action = action;
         this.price = price;
         this.stock = stock;
+        this.shares = shares;
     }
 
 
