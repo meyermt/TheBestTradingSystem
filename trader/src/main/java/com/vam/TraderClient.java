@@ -12,14 +12,15 @@ import java.net.UnknownHostException;
 /**
  * Created by ana_b on 6/3/2017.
  */
-public class TraderAdminClient {
+public class TraderClient {
 
     private InetAddress mHostName;
     private final int mPortNumber;
     private  InetAddress msourceHost;
     private final int mSourcePort;
+    private Object mResponse;
 
-    public TraderAdminClient(String hostName, int portNumber,Object request,String sourceName, int sourcePortNumber) {
+    public TraderClient(String hostName, int portNumber, Object request, String sourceName, int sourcePortNumber) {
 
         try {
             this.mHostName = InetAddress.getLocalHost();
@@ -29,24 +30,27 @@ public class TraderAdminClient {
             e.printStackTrace();
         }
         this.mPortNumber= portNumber;
-
         this.mSourcePort= sourcePortNumber;
-        createSocketAndSend(request);
+        mResponse=createSocketAndSend(request);
     }
 
-    public void createSocketAndSend(Object serialize){
+    public Object getmResponse() {
+        return mResponse;
+    }
+
+    public AdminTraderResponse createSocketAndSend(Object serialize){
 
         try(
                 Socket traderClientSocket = new Socket(mHostName, mPortNumber,msourceHost,mSourcePort);
 
                 DataOutputStream out = new DataOutputStream(traderClientSocket.getOutputStream());
-
+                PrintWriter outprinter =new PrintWriter(traderClientSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(traderClientSocket.getInputStream()))
                 ) {
             //Send request
             Gson gson = new Gson();
-            out.writeBytes(gson.toJson(serialize));
-
+            outprinter.println(gson.toJson(serialize)+"\n");
+            System.out.println("sent Gson as Json");
             String fromAdminServer;
 
             //Receive response
@@ -55,15 +59,13 @@ public class TraderAdminClient {
                 //Read the server response and attempt to parse it as JSON
                 GsonBuilder gsonBuilder = new GsonBuilder();
                 Gson gson2 = gsonBuilder.create();
-                AdminTraderResponse response = gson2.fromJson(in,AdminTraderResponse.class);
-                break;
-
+                return gson2.fromJson(in,AdminTraderResponse.class);
             }
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        return null;
     }
 }

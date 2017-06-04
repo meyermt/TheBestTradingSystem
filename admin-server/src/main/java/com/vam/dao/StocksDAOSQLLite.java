@@ -63,7 +63,7 @@ public class StocksDAOSQLLite implements StocksDAO {
             while (rs.next()) {
                 Stock stock = new Stock(rs.getString("continent"),
                         rs.getString("country"), rs.getString("market"),
-                        rs.getString("stock"));
+                        rs.getString("stock"), false);
                 stocks.add(stock);
             }
             return stocks;

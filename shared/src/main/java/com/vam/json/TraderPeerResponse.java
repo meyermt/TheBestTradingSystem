@@ -24,6 +24,9 @@ public class TraderPeerResponse {
     }
 
 
+    public String getStockName() {
+        return stockName;
+    }
     public boolean succeed() {
         return this.succeed;
     }

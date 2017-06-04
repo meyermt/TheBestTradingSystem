@@ -2,14 +2,12 @@ package com.vam;
 
 import com.vam.json.*;
 
+
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
-import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +29,12 @@ public class TradePanel extends JPanel {
     private JTextField mPasswordText;
     private JComboBox<String> mCountry;
     private boolean isLoginValid;
+    private JComboBox<String> stockValue;
+    private JTextField priceValue;
+    private JTextField quantityValue;
+    private AdminTraderResponse mLoginResult;
+    private TraderPeerResponse mCurrentConsResult;
+    private TraderPeerResponse mLastSaleResult;
 
     public TradePanel() {
 
@@ -61,13 +65,11 @@ public class TradePanel extends JPanel {
             JButton log = new JButton("Login");
             JLabel countryLabel = new JLabel("Country:*");
             mCountry = new JComboBox<String>();
-
             for (Country c : Country.values()) {
                 mCountry.addItem(c.getName());
             }
             ActionListener dealListener = new TradePanel.LoginListener();
             log.addActionListener(dealListener);
-
 
             add(usernameLabel, BorderLayout.CENTER);
             add(mUsernameText, BorderLayout.CENTER);
@@ -80,6 +82,7 @@ public class TradePanel extends JPanel {
         }
 
         if (ScreenState == 1) {
+            int rows = mLoginResult.getStocks().size();
 
             //Draw the main menu
             JLabel usernameLabel = new JLabel("Hello " + mUsername);
@@ -96,25 +99,31 @@ public class TradePanel extends JPanel {
             buy.addActionListener(buyListener);
 
             JLabel stock = new JLabel("Stock:");
-            JTextField stock_value = new JTextField(15);
-            JLabel price = new JLabel("Price:");
-            JTextField price_value = new JTextField(15);
+            stockValue = new JComboBox<String>();
+
+
+            JLabel price = new JLabel("Price($):");
+            priceValue = new JTextField(15);
             JLabel quantity = new JLabel("Quantity");
-            JTextField quantity_value = new JTextField(15);
-            int rows = mStock.size();
+            quantityValue = new JTextField(15);
+
             JTextArea availableStocks = new JTextArea(rows, 1);
-            for (Stock stockName : mStock.values()) {
-                //Code
+            String concatStock="";
+            for (Stock c : mLoginResult.getStocks()) {
+                concatStock+=c.getStock()+"\n";
+                stockValue.addItem(c.getStock());
+
             }
+            availableStocks.setText(concatStock);
 
             add(usernameLabel, BorderLayout.NORTH);
             add(availableStocks,BorderLayout.WEST);
             add(stock, BorderLayout.CENTER);
-            add(stock_value, BorderLayout.CENTER);
+            add(stockValue, BorderLayout.CENTER);
             add(price, BorderLayout.CENTER);
-            add(price_value, BorderLayout.CENTER);
+            add(priceValue, BorderLayout.CENTER);
             add(quantity, BorderLayout.CENTER);
-            add(quantity_value, BorderLayout.CENTER);
+            add(quantityValue, BorderLayout.CENTER);
             add(consPrice, BorderLayout.CENTER);
             add(sell, BorderLayout.CENTER);
             add(buy, BorderLayout.CENTER);
@@ -136,9 +145,12 @@ public class TradePanel extends JPanel {
     private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String country= (String) mCountry.getSelectedItem();
-            TraderAdminRequest request= new TraderAdminRequest("localhost",1346, TraderAdminAction.LOGIN,country,"");
-            TraderAdminClient client = new TraderAdminClient("localhost",1347,request,"localhost",1346);
-            processLogin(client.getmResponse());
+            TraderAdminRequest request= new TraderAdminRequest("127.0.0.1",1346, TraderAdminAction.LOGIN,country,"");
+            TraderClient client = new TraderClient("localhost",1347,request,"localhost",1346);
+            if(client.getmResponse() instanceof AdminTraderResponse){
+                mLoginResult=(AdminTraderResponse)client.getmResponse();
+            }
+            processLogin(mLoginResult);
             if (isLoginValid) {
                 mUsername = mUsernameText.getText();
                 mPassword = mPasswordText.getText();
@@ -148,7 +160,6 @@ public class TradePanel extends JPanel {
                 JLabel problem = new JLabel("There's a problem with your login");
             }
         }
-
 
         private void processLogin(AdminTraderResponse adminTraderResponse) {
             if (adminTraderResponse.getCode().equals(AdminTraderResponseCode.OK)){
@@ -161,34 +172,92 @@ public class TradePanel extends JPanel {
                 System.out.println("Invalid action");
             }
         }
-
     }
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            (String traderName, TraderAction action, String stock,int shares){
-                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAdminAction.LOGIN, country, "");
-                TraderAdminClient client = new TraderAdminClient("localhost", 1347, request, "localhost", 1346);
-
-                processLogin(client.getmResponse());
-
-                if (isLoginValid) {
-                    ScreenState = 1;
-                    changeState();
-                } else {
-                    JLabel problem = new JLabel("There's a problem with your login");
-                }
+            String stock= (String) stockValue.getSelectedItem();
+            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.CONSULT,stock,0,0);
+            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+            if(client.getmResponse() instanceof TraderPeerResponse){
+                    mCurrentConsResult=(TraderPeerResponse)client.getmResponse();
             }
-        }
+            processResult("consult");
+            }
     }
 
     private class SellListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
+            String stock= (String) stockValue.getSelectedItem();
+            double price=0;
+            int quantity=0;
+            try{
+                price= Double.parseDouble(priceValue.getText());
+                quantity = Integer.parseInt(quantityValue.getText());
+            }catch(NumberFormatException e){
+                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+            }
+            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.SELL,stock, price,quantity);
+            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+            if(client.getmResponse() instanceof TraderPeerResponse){
+                mLastSaleResult=(TraderPeerResponse)client.getmResponse();
+            }
+            processResult("sell");
         }
+    }
+
+    private void refreshFields() {
+        stockValue = new JComboBox<String>();
+        priceValue = new JTextField(15);
+        mCountry = new JComboBox<String>();
+        repaint();
     }
 
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
+                String stock= (String) stockValue.getSelectedItem();
+                double price=0;
+                int quantity=0;
+                try{
+                    price= Double.parseDouble(priceValue.getText());
+                    quantity = Integer.parseInt(quantityValue.getText());
+                }catch(NumberFormatException e){
+                    String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+                }
+                TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.BUY,stock, price,quantity);
+                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                if(client.getmResponse() instanceof TraderPeerResponse){
+                    mLastSaleResult=(TraderPeerResponse)client.getmResponse();
+                }
+                processResult("buy");
+            }
+    }
 
-    }}
+    private void processResult(String process) {
+        if (process.equals("consult")) {
+            JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+            add(resultAlert);
+            repaint();
+            if(mCurrentConsResult.succeed()){
+                stockValue.setSelectedItem(mCurrentConsResult.getStockName());
+                priceValue.setText("" + mCurrentConsResult.getPrice());
+                priceValue.setEditable(false);
+                refreshFields();
+            }
+        }
+        else if (process.equals("sell")){
+            if(mLastSaleResult.succeed()){
+                refreshFields();
+            }
+        }
+        else if (process.equals("buy")){
+            if(mLastSaleResult.succeed()){
+                refreshFields();
+            }
+        }
+        else{
+            throw new IllegalStateException("Process must be consult, sell or buy");
+        }
+    }
 }
+

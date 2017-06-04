@@ -43,11 +43,19 @@ public class TraderClientHandler implements Runnable{
         try {
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-
-            String clientInput = input.readLine();
+            StringBuilder clientInputBuilder = new StringBuilder();
+            String clientInput="";
+            System.out.print("Before input");
+            while (input.ready()) {
+                System.out.print("While");
+                clientInputBuilder.append(clientInput);
+                System.out.print(clientInput);
+            }
+            System.out.print("After");
             Gson gson = new Gson();
-            TraderAdminRequest request = gson.fromJson(clientInput, TraderAdminRequest.class);
-            processTraderReq(request);
+            TraderAdminRequest request = gson.fromJson(clientInputBuilder.toString(), TraderAdminRequest.class);
+            System.out.println("Got here gson");
+            processTraderReq(request, client);
             client.close();
         } catch (IOException e) {
             logger.error("Ran into an issue reading or writing from client {}", client.getPort());
@@ -55,8 +63,10 @@ public class TraderClientHandler implements Runnable{
         }
     }
 
-    private void processTraderReq(TraderAdminRequest request) {
-        Socket client = tryClient(request);
+    private void processTraderReq(TraderAdminRequest request, Socket client) {
+        peersDB.insertPeer("127.0.0.1", 8090, "America", "USA", "New York Stock Exchange", false);
+        //Socket client = tryClient(request);
+        System.out.println("Got here");
         if (request.getAction() == TraderAdminAction.LOGIN) {
             List<PeerData> peers = peersDB.getCountryPeers(request.getCountry());
             if (peers.isEmpty()) {
