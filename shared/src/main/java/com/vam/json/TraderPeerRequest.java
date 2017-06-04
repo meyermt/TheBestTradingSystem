@@ -20,7 +20,6 @@ public class TraderPeerRequest {
     private String stock;
     private int shares;
 
-    public TraderPeerRequest(){}
 
     public TraderPeerRequest(String traderName, String sourceIP,int sourcePort, TraderAction action, String stock, int shares){
             this.trader = traderName;
@@ -30,9 +29,6 @@ public class TraderPeerRequest {
     }
 
 
-    public String getTrader() {
-        return trader;
-    }
 
     public TraderAction getAction() {
         return action;

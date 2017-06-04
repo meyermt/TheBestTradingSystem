@@ -3,33 +3,33 @@ package com.vam.dao;
 import com.vam.json.Stock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.jvm.hotspot.oops.Mark;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
- * Created by michaelmeyer on 5/13/17.
+ * Created by michaelmeyer on 6/3/17.
  */
-public class StocksDAOSQLLite implements StocksDAO {
+public class MarketDAOSQLLite implements MarketDAO {
 
-    private Logger logger = LoggerFactory.getLogger(StocksDAOSQLLite.class);
-    private static final String DB_NAME = "stocks";
-    private static final String STOCKS_DB_FILE = "stocks.db";
-    private static final String STOCKS_CSV = "price_stocks.csv";
+    private Logger logger = LoggerFactory.getLogger(MarketDAOSQLLite.class);
+    private static final String DB_NAME = "market";
+    private static final String MARKET_DB_FILE = "market.db";
     private final File dbFile;
+    private final File loadStocksFile;
+    private final File loadPriceFile;
 
-    public StocksDAOSQLLite() {
-        dbFile = new File("./" + STOCKS_DB_FILE);
+    public MarketDAOSQLLite(String qtyStocksCsv, String priceCsv) {
+        dbFile = new File("./" + MARKET_DB_FILE);
         if (!dbFile.isFile()) { // need to create a new db
             initNewDBAndTable();
-            File loadFile = new File("./" + STOCKS_CSV);
-            if (loadFile.isFile()) {
+            File loadStocksFile = new File("./" + qtyStocksCsv);
+            File loadPriceFile = new File("./" + priceCsv);
+            if (loadStocksFile.isFile() && loadPriceFile.isFile()) {
                 loadStocksInTable();
             } else {
                 throw new RuntimeException("Unable to find stocks csv file.");
@@ -52,26 +52,6 @@ public class StocksDAOSQLLite implements StocksDAO {
         }
     }
 
-    public List<Stock> getAllStocks() {
-        String sql = "SELECT id, continent, country, market, stock FROM " + DB_NAME;
-        List<Stock> stocks = new ArrayList<>();
-
-        try (Connection conn = this.connect(DB_NAME);
-             Statement stmt  = conn.createStatement();
-             ResultSet rs    = stmt.executeQuery(sql)){
-
-            while (rs.next()) {
-                Stock stock = new Stock(rs.getString("continent"),
-                        rs.getString("country"), rs.getString("market"),
-                        rs.getString("stock"));
-                stocks.add(stock);
-            }
-            return stocks;
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to retrieve stocks in stock db.", e);
-        }
-    }
-
     private Connection connect(String dbName) {
         // SQLite connection string
         String url = "jdbc:sqlite:./" + dbName + ".db";
@@ -88,13 +68,9 @@ public class StocksDAOSQLLite implements StocksDAO {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(STOCKS_CSV));
             String[] rawContinents = reader.readLine().split(",");
-            String[] continents = Arrays.copyOfRange(rawContinents, 3, rawContinents.length);
             String[] rawCountries = reader.readLine().split(",");
-            String[] countries = Arrays.copyOfRange(rawCountries, 3, rawCountries.length);
             String[] rawMarkets = reader.readLine().split(",");
-            String[] markets = Arrays.copyOfRange(rawMarkets, 3, rawMarkets.length);
             String[] rawStocks = reader.readLine().split(",");
-            String[] stocks = Arrays.copyOfRange(rawStocks, 3, rawStocks.length);
             insertStocks(continents, countries, markets, stocks);
             reader.close();
         } catch (IOException e) {
@@ -139,3 +115,4 @@ public class StocksDAOSQLLite implements StocksDAO {
         }
     }
 }
+
