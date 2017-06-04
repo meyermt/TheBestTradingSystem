@@ -7,6 +7,7 @@ import com.vam.dao.MarketDAOSQLLite;
 import com.vam.json.*;
 import com.vam.listener.AdminListener;
 import com.vam.listener.PeerListener;
+import com.vam.listener.TraderListener;
 import org.apache.commons.cli.*;
 
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class Peer{
     private static final ExecutorService pool = Executors.newCachedThreadPool();
 
     private static String ADMIN_IP = "127.0.0.1"; // yes, we would never do this if we weren't running just locally
+    private static String SUPER_IP = "127.0.0.1";
     private static int ADMIN_TARGET_PORT = 8090;
     private static List<PeerData> peerNetwork = new ArrayList<>();
     private static List<PeerData> superpeerNetwork = new ArrayList<>();
@@ -123,27 +125,88 @@ public class Peer{
         }
     }
 
-    public void sendUpdatedNetwork() {
-        logger.info("new peer group membership available. Shipping it to everyone");
-        peerNetwork.stream()
-                .forEach(peer -> {
+    public PeerPeerResponse consultPrice(TraderPeerRequest request) {
+        TraderAction action = request.getAction();
+        String stockName = request.getStock().getStock();
+        String marketName = request.getStock().getMarket();
+
+        if (action != null && action == TraderAction.CONSULT) {
+            if (this.market == marketName) {
+                double price = this.marketDAO.getPrice(stockName);
+                return new PeerPeerResponse(true, action, price, stockName, 0);
+            } else {
+                if(!isSuper){
                     try {
-                        Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
-                        PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null, peerNetwork);
-                        Gson gson = new Gson();
-                        PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
-                        output.println(gson.toJson(request));
-                        peerClient.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        Socket socket = new Socket(SUPER_IP,superPort);
+
+
+                } else {
+                    boolean isMyContinent = false;
+                    for (PeerData peerData : peerNetwork) {
+                        if (peerData.getMarket() == marketName) {
+                            isMyContinent = true;
+                            String ip = peerData.getIp();
+                            int port = peerData.getPeerPort();
+                            try {
+                                Socket socket = new Socket(ip, port);
+                                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                                PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+                                PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
+                                        0, stockName, 0.0);
+                                Gson gson = new Gson();
+                                pw.println(gson.toJson(peerPeerRequest));
+                                socket.setSoTimeout(1000);
+                                System.out.println("Timeout");
+                                PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
+                                if (peerPeerResponse != null) {
+                                    return peerPeerResponse;
+                                } else {
+                                    return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
+                                }
+
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                });
+                    if (isMyContinent == false) {
+
+                        //Talk to super peer
+
+                    }
+                }
+            }
+        }
     }
+
+    public void sendUpdatedNetwork(){
+            logger.info("new peer group membership available. Shipping it to everyone");
+            peerNetwork.stream()
+                    .forEach(peer -> {
+                        try {
+                            Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
+                            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null, peerNetwork);
+                            Gson gson = new Gson();
+                            PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
+                            output.println(gson.toJson(request));
+                            peerClient.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+        }
+
 
     public void setSuperpeerNetwork(List<PeerData> peers) {
         logger.info("I now know my super peers, i'll remember that");
         this.superpeerNetwork = peers;
     }
+
+    public String getMarket(){
+        return this.market;
+    }
+
 
 //    public TraderPeerResponse consult(TraderPeerRequest request){
 //        TraderAction action = request.getAction();
@@ -260,13 +323,7 @@ public class Peer{
 
 
             ServerSocket serverSocket = new ServerSocket(traderPort);
-            while (true) {
-                Socket socket = serverSocket.accept();
-                //TraderRequestHandler traderRequestHandler = new TraderRequestHandler(socket,this);
-                //new Thread(traderRequestHandler).start();
-                //pool.submit(traderRequestHandler);
-
-            }
+            TraderListener traderListener = new TraderListener(this,serverSocket);
         } catch (IOException e) {
             e.printStackTrace();
         }
