@@ -3,6 +3,7 @@ package com.vam.peer;
 import com.google.gson.Gson;
 import com.vam.dao.MarketDAO;
 import com.vam.dao.MarketDAOSQLLite;
+import com.vam.handler.PeerSpRequestHandler;
 import com.vam.handler.TraderRequestHandler;
 import com.vam.json.*;
 import org.apache.commons.cli.*;
@@ -50,24 +51,24 @@ public class Peer{
     private static List<PeerData> peerNetwork = Collections.emptyList();
     private static List<PeerData> superpeerNetwork = Collections.emptyList();
 
-    private int port;
+    private int traderPort;
+    private int peerPort;
     private int superPort;
     private String continent;
     private String country;
     private String market;
     private boolean isSuper;
-    private Map<String, Stock> stockMap;
     private MarketDAO marketDAO;
 
-    public Peer(int port, String continent, String country, String market, boolean isSuper, int superPort){
+    public Peer(int traderPort, int peerPort, String continent, String country, String market, boolean isSuper, int superPort){
 
-        this.port = port;
+        this.traderPort = traderPort;
+        this.peerPort = peerPort;
         this.continent = continent;
         this.country = country;
         this.market = market;
         this.isSuper = isSuper;
         this.superPort = superPort;
-        this.stockMap = new HashMap<>();
         this.marketDAO = new MarketDAOSQLLite(QTY_CSV, PRICE_CSV, market);
     }
 
@@ -98,40 +99,74 @@ public class Peer{
             }
 
 
-
-    }
-
-    public void connectAdmin(){
-
     }
 
 
-    public Map<String, Stock> getStockMap(){
-        return this.stockMap;
-    }
 
 
-    public TraderPeerResponse consult(TraderPeerRequest request){
+    public PeerPeerResponse consult(TraderPeerRequest request){
         TraderAction action = request.getAction();
-        String stockName = request.getStock();
-        if(action != null && action == TraderAction.CONSULT){
-            if(this.stockMap.containsKey(stockName)){
-                Stock stock = this.stockMap.get(stockName);
-                double price = stock.getPrice();
-                return new TraderPeerResponse(true,action,price,stockName);
+        String stockName = request.getStock().getStock();
+        String marketName = request.getStock().getMarket();
+        String continentName = request.getStock().getContinent();
+
+        if(action != null && action == TraderAction.CONSULT) {
+            if (this.market == marketName) {
+                double price = this.marketDAO.getPrice(stockName);
+                return new PeerPeerResponse(true, action, price, stockName);
             } else {
+                if (!isSuper) {
+                    try {
+
+                        ServerSocket serverSocket = new ServerSocket(superPort);
+                        while (true) {
+                            Socket socket = serverSocket.accept();
+                            PeerSpRequestHandler peerSpRequestHandler = new PeerSpRequestHandler(socket);
+                            pool.submit(peerSpRequestHandler);
+
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+
+                    }
+                } else {
+                    if(continentName == this.continent){
+                        for(PeerData peerData : peerNetwork){
+                            if(peerData.getMarket() == marketName){
+                                String ip = peerData.getIp();
+                                int port = peerData.getPort();
+                                
+                            }
+                        }
+                    } else {
+                        //Talk to super peer
+                    }
+
+                }
 
             }
 
-        }
+
+
 
 
     }
 
-    public TraderPeerResponse transact(TraderPeerRequest request) {
+    public PeerPeerResponse transact(TraderPeerRequest request) {
         TraderAction action = request.getAction();
-        String stockName = request.getStock();
+        String stockName = request.getStock().getStock();
         int shares = request.getShares();
+        if(action != null){
+            if(action == TraderAction.BUY){
+
+                int quantity = this.marketDAO.getQuantity(stockName);
+                if(quantity > shares){
+                    this.marketDAO.updateQuantity(stockName,quantity - shares);
+                    return new PeerPeerResponse(true,request.getAction(),shares,stockName);
+                }
+            }
+        }
+
 
     }
 
@@ -139,15 +174,18 @@ public class Peer{
 
     public void start(){
 
-        registerWithSuperPeer();
+        if(this.isSuper == false) {
+            registerWithSuperPeer();
+        }
 
 
         try {
-            ServerSocket serverSocket = new ServerSocket(port);
+            ServerSocket serverSocket = new ServerSocket(traderPort);
             while (true) {
                 Socket socket = serverSocket.accept();
                 TraderRequestHandler traderRequestHandler = new TraderRequestHandler(socket,this);
-                pool.submit(traderRequestHandler);
+                new Thread(traderRequestHandler).start();
+                //pool.submit(traderRequestHandler);
 
             }
         } catch (IOException e) {

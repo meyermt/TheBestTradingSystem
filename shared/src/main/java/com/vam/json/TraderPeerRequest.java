@@ -15,20 +15,18 @@ import java.util.Date;
 public class TraderPeerRequest {
 
 
-    private String trader;
     private TraderAction action;
-    private String stock;
+    private Stock stock;
     private int shares;
     private double price;
 
 
-    public TraderPeerRequest(TraderAction action, String stock, double price, int shares){
+    public TraderPeerRequest(TraderAction action, Stock stock, double price, int shares){
 
-            this.action = action;
-            this.stock = stock;
-            this.shares = shares;
-            this.price = price;
-
+        this.action = action;
+        this.stock = stock;
+        this.shares = shares;
+        this.price = price;
 
     }
 
@@ -38,7 +36,7 @@ public class TraderPeerRequest {
         return action;
     }
 
-    public String getStock() {
+    public Stock getStock() {
         return stock;
     }
 

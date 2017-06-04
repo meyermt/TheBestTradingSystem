@@ -30,6 +30,7 @@ public class TraderPeerResponse {
         return this.action;
     }
 
+
     public String toString(){
         if(this.action == TraderAction.CONSULT){
             return succeed? String.valueOf(this.price):"Failed to get price";
