@@ -12,15 +12,15 @@ import java.net.UnknownHostException;
 /**
  * Created by ana_b on 6/3/2017.
  */
-public class TraderAdminClient {
+public class TraderClient {
 
     private InetAddress mHostName;
     private final int mPortNumber;
     private  InetAddress msourceHost;
     private final int mSourcePort;
-    private AdminTraderResponse mResponse;
+    private Object mResponse;
 
-    public TraderAdminClient(String hostName, int portNumber,Object request,String sourceName, int sourcePortNumber) {
+    public TraderClient(String hostName, int portNumber, Object request, String sourceName, int sourcePortNumber) {
 
         try {
             this.mHostName = InetAddress.getLocalHost();
@@ -34,7 +34,7 @@ public class TraderAdminClient {
         mResponse=createSocketAndSend(request);
     }
 
-    public AdminTraderResponse getmResponse() {
+    public Object getmResponse() {
         return mResponse;
     }
 

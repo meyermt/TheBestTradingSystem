@@ -18,14 +18,16 @@ public class TraderPeerRequest {
     private int sourcePort;
     private TraderAction action;
     private String stock;
+    private double price;
     private int shares;
 
     public TraderPeerRequest(){}
 
-    public TraderPeerRequest(String traderName, String sourceIP,int sourcePort, TraderAction action, String stock, int shares){
+    public TraderPeerRequest(String traderName, String sourceIP,int sourcePort, TraderAction action, String stock, double price, int shares){
             this.trader = traderName;
             this.action = action;
             this.stock = stock;
+            this.price=price;
             this.shares = shares;
     }
 
