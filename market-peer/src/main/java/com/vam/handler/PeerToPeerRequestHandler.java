@@ -58,7 +58,9 @@ public class PeerToPeerRequestHandler implements Runnable {
             peer.updateMyNetwork(message.getPeerNetwork());
         } else if (message.getAction() == PeerToPeerAction.FIND_MARKET) {
             if (peer.getIsSuper()) {
-                if (message.getTraderRequest().getContinent().equals(peer.getContinent()) { // it is in our continent, so find the right person and send along
+                if (message.getTraderRequest().getMarket().equals(peer.getMarket())) {
+                    peer.
+                } else if (message.getTraderRequest().getContinent().equals(peer.getContinent()) { // it is in our continent, so find the right person and send along
                     peer.findMarketInNetworkSendAlong(message);
                 } else {
                     peer.superSendAlong(message);
