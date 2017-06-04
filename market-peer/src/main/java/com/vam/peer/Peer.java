@@ -78,20 +78,18 @@ public class Peer{
                 while (true) {
 
                     Socket socket = serverSocket.accept();
+                    socket.setSoTimeout(10000);
 
                     Gson gson = new Gson();
                     BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
 
-                    PeerSPRequest registration = new PeerSPRequest(this.market,this.stockMap);
-                    pw.println(registration);
-                    socket.setSoTimeout(10000);
+                    PeerSPRequest registration = new PeerSPRequest(this.market);
+                    pw.println(gson.toJson(registration));
                     logger.info("Having trouble connecting to the super peer");
-                    connectAdmin();
-
                     String lines = br.readLine();
-                    gson.fromJson(lines,)
-
+                    PeerSPResponse response = gson.fromJson(lines,PeerSPResponse.class);
+                    peerNetwork = (List)response.getPeerMap();
 
 
                 }
@@ -113,36 +111,28 @@ public class Peer{
     }
 
 
-
-
-    //Still working on
-    public PeerSPResponse consult(PeerSPRequest request){
+    public TraderPeerResponse consult(TraderPeerRequest request){
         TraderAction action = request.getAction();
         String stockName = request.getStock();
-        if(action != null && action == TraderAction.CONSULT) {
-            if (stockMap.containsKey(stockName)) {
-                Stock stock = stockMap.get(stockName);
+        if(action != null && action == TraderAction.CONSULT){
+            if(this.stockMap.containsKey(stockName)){
+                Stock stock = this.stockMap.get(stockName);
                 double price = stock.getPrice();
-                return new PeerSPResponse(true, action, price);
+                return new TraderPeerResponse(true,action,price,stockName);
             } else {
-                //Ask super peer
-                //Todo
 
             }
-        } else {
-            return new PeerSPResponse();
+
         }
-        return new PeerSPResponse();
+
+
     }
 
-    //Still working on
-    public PeerSPResponse transact(PeerSPRequest request) {
+    public TraderPeerResponse transact(TraderPeerRequest request) {
         TraderAction action = request.getAction();
         String stockName = request.getStock();
         int shares = request.getShares();
 
-        return new PeerSPResponse();
-        //Todo
     }
 
 
@@ -152,17 +142,12 @@ public class Peer{
         registerWithSuperPeer();
 
 
-        ExecutorService pool = Executors.newCachedThreadPool();
-        //Create thread with admin server
-        //Create thread with super peer
-
         try {
             ServerSocket serverSocket = new ServerSocket(port);
             while (true) {
                 Socket socket = serverSocket.accept();
                 TraderRequestHandler traderRequestHandler = new TraderRequestHandler(socket,this);
                 pool.submit(traderRequestHandler);
-                checkSuperStatus(channel);
 
             }
         } catch (IOException e) {
@@ -171,57 +156,6 @@ public class Peer{
 
     }
 
-    private static void checkSuperStatus(JChannel channel) {
-        View view = channel.getView();
-        Address address = view.getMembers().get(0);
-        if (address.equals(channel.getAddress()) && !isSuper) { // implies a super has gone down and this peer is now top of list/super
-            isSuper = true;
-            requestGroupMembership(address);
-            // TODO: Need to wait and then have the peer messaging update a class field of some sort that will always get sent in the admin client req
-            waitFiveSecs();
-            Socket adminClient = tryClient(ADMIN_IP, ADMIN_PORT);
-            PeerAdminRequest request = new PeerAdminRequest(PeerAdminAction.REGISTER_NETWORK, this.continent, this.country, this.market,
-                    this.peerNetwork, MY_IP, port);
-
-
-        }
-    }
-
-    public static void waitFiveSecs() {
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Unable to sleep. Insomnia?", e);
-        }
-    }
-
-    public void receive(Message msg) {
-        try {
-            PeerPeerMessage peerMessage = (PeerPeerMessage) msg.getObject();
-
-            if (peerMessage.getAction() == PeerPeerAction.MEMBERSHIP_REQ) { // this means a new super wants to know we are alive
-                PeerPeerMessage respMessage = new PeerPeerMessage(PeerPeerAction.MEMBERSHIP_RESP, null, MY_IP, port,
-                        peerMessage.getSourceAddr(), peerMessage.getSourceIP(), peerMessage.getSourcePort(), market);
-                Message response = new Message(peerMessage.getSourceAddr(), respMessage);
-                channel.send(response);
-            } else if (peerMessage.getAction() == PeerPeerAction.MEMBERSHIP_RESP && isSuper) {
-
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Something went wrong sending message to peer", e);
-        }
-    }
-
-    public static void requestGroupMembership(Address myAddress) {
-        try {
-            PeerPeerMessage peerMessage = new PeerPeerMessage(PeerPeerAction.MEMBERSHIP_REQ, myAddress, MY_IP, port, null, "", 0,
-                    market);
-            Message memberMessage = new Message(null, myAddress, peerMessage);
-            channel.send(memberMessage);
-        } catch (Exception e) {
-            throw new RuntimeException("Something went wrong sending message out on channel", e);
-        }
-    }
 
     public static Socket tryClient(String ip, int port) {
         try {

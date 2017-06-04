@@ -1,38 +1,32 @@
 package com.vam.handler;
 
 import com.google.gson.Gson;
-import com.vam.json.*;
+
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
+
 /**
- * Created by VictoriatheEast on 6/3/17.
+ * Peer- Super Peer Request
  */
-public class AdminRequestHandler implements Runnable {
+public class PeerSpRequestHandler {
 
     private Socket socket;
 
-    public AdminRequestHandler(Socket socket){
-            this.socket = socket;
+    public PeerSpRequestHandler(Socket socket) {
+        this.socket = socket;
     }
 
     @Override
+    public void run() {
 
-    public void run(){
         try {
             Gson gson = new Gson();
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-
-
-
-            AdminPeerResponse response = null;
-
-
-
 
 
         } catch (IOException e) {
@@ -44,5 +38,4 @@ public class AdminRequestHandler implements Runnable {
                 e.printStackTrace();
             }
         }
-    }
 }

@@ -27,28 +27,28 @@ public class TraderRequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
             TraderPeerRequest request = null;
-            PeerSPRequest peerRequest = null;
-            PeerSPResponse peerResponse = null;
+            TraderPeerResponse response = null;
+
             while (true) {
                 //Get request from trader
                 request = gson.fromJson(br.readLine(), TraderPeerRequest.class);
 
-
-
                 //Process request
-                if(peerRequest.getAction() == TraderAction.CONSULT){
-                    peerResponse = peer.consult(peerRequest);
+                if(request != null) {
+                    if (request.getAction() == TraderAction.CONSULT) {
+                        response = peer.consult(request);
+                    } else {
+                        response = peer.transact(request);
+                    }
                 } else {
-                    peerResponse = peer.transact(peerRequest);
+                    System.out.println("The request from the trader is null");
                 }
 
-                TraderPeerResponse traderResponse = new TraderPeerResponse(peerResponse.isSucceed(),
-                        peerResponse.getAction(),peerResponse.getPrice());
-
                 //Send back response
-                pw.println(gson.toJson(traderResponse));
+                pw.println(gson.toJson(response));
 
             }
+
 
         } catch (IOException e) {
             e.printStackTrace();

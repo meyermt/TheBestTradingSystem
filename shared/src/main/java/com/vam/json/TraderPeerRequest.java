@@ -19,13 +19,16 @@ public class TraderPeerRequest {
     private TraderAction action;
     private String stock;
     private int shares;
+    private double price;
 
 
-    public TraderPeerRequest(TraderAction action, String stock, int shares){
+    public TraderPeerRequest(TraderAction action, String stock, double price, int shares){
 
             this.action = action;
             this.stock = stock;
             this.shares = shares;
+            this.price = price;
+
 
     }
 
