@@ -83,29 +83,27 @@ public class Peer{
 
 
     public void registerWithSuperPeer(){
-            try {
-                ServerSocket serverSocket = new ServerSocket(superPort);
-                while (true) {
+        try {
+            Socket peerClient = new Socket("127.0.0.1", superPort);
+            PeerData me = new PeerData(MY_IP, peerPort, traderPort, continent, country, market, false);
+            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.JOIN_PEER_NETWORK, me, Collections.emptyList());
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
+            output.println(gson.toJson(request));
+            peerClient.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-                    Socket socket = serverSocket.accept();
-                    socket.setSoTimeout(10000);
+    public void addPeerToNetwork(PeerData peer) {
+        this.peers.add(peer);
+        registerNetworkWithAdminServer();
+        sendUpdatedNetwork();
+    }
 
-                    Gson gson = new Gson();
-                    BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-
-                    PeerSPRequest registration = new PeerSPRequest(this.market);
-                    pw.println(gson.toJson(registration));
-                    logger.info("Having trouble connecting to the super peer");
-                    String lines = br.readLine();
-                    PeerSPResponse response = gson.fromJson(lines,PeerSPResponse.class);
-                    peerNetwork = (List)response.getPeerMap();
-
-
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public void updateMyNetwork(List<PeerData> peers) {
+        this.peers = peers;
     }
 
     public void registerNetworkWithAdminServer(){
@@ -116,9 +114,30 @@ public class Peer{
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(adminClient.getOutputStream(), true);
             output.println(gson.toJson(adminRequest));
+            adminClient.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendUpdatedNetwork() {
+        peers.stream()
+                .forEach(peer -> {
+                    try {
+                        Socket peerClient = new Socket("127.0.0.1", superPort);
+                        PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null, peerNetwork);
+                        Gson gson = new Gson();
+                        PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
+                        output.println(gson.toJson(request));
+                        peerClient.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+
+    public void setSuperpeerNetwork(List<PeerData> peers) {
+        this.superpeers = peers;
     }
 
     public TraderPeerResponse consult(TraderPeerRequest request){
