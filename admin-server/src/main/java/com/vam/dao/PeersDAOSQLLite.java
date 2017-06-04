@@ -24,6 +24,7 @@ public class PeersDAOSQLLite implements PeersDAO {
     private static final String DB_NAME = "peers";
     private static final String PEERS_DB_FILE = "peers.db";
     private static final String BACKUP_DIR = "backup";
+    private static final String IP = "127.0.0.1";
     private final Path backupFile;
     private final File dbFile;
 
@@ -36,12 +37,21 @@ public class PeersDAOSQLLite implements PeersDAO {
         backupFile = Paths.get(BACKUP_DIR, PEERS_DB_FILE);
         if (!dbFile.isFile()) { // need to create a new db
             initNewDBAndTable();
+            initSPEntries();
         }
         // check if our backup dir exists or not
         if (!backupDir.isDirectory()) {
             logger.info("creating backup dir");
             backupDir.mkdir();
         }
+    }
+
+    public void initSPEntries() {
+        // once distributed would need to update the IPs
+        insertPeer(IP, 8091, "America", "USA", "New York Stock Exchange", true);
+        insertPeer(IP, 8092, "Asia", "Japan", "Tokyo", true);
+        insertPeer(IP, 8093, "Europe", "France", "Euronext Paris", true);
+        insertPeer(IP, 8094, "Africa", "South Africa", "Johannesburg", true);
     }
 
     public void insertPeer(String ip, int port, String continent, String country, String market, boolean isSuper) {

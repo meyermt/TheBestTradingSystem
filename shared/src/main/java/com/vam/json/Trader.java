@@ -87,7 +87,7 @@ public class Trader {
         //Skip the table description
         String description = sc.nextLine();
 
-        logger.info("PeerRequest begin!");
+        logger.info("PeerSPRequest begin!");
         Gson gson = new Gson();
         while (sc.hasNextLine()) {
             String line = sc.nextLine().trim();
