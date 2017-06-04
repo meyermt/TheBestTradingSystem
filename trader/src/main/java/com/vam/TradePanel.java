@@ -1,8 +1,10 @@
 package com.vam;
 
 import com.vam.json.*;
+import org.omg.CORBA.PRIVATE_MEMBER;
 
 import javax.swing.*;
+import javax.xml.bind.PrintConversionEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,6 +33,8 @@ public class TradePanel extends JPanel {
     private JTextField priceValue;
     private JTextField quantityValue;
     private AdminTraderResponse mLoginResult;
+    private TraderPeerResponse mCurrentConsResult;
+    private TraderPeerResponse mLastSaleResult;
 
     public TradePanel() {
 
@@ -96,7 +100,7 @@ public class TradePanel extends JPanel {
             buy.addActionListener(buyListener);
 
             JLabel stock = new JLabel("Stock:");
-            stockValue = new JComboBox<String>(15);
+            stockValue = new JComboBox<String>();
             JLabel price = new JLabel("Price($):");
             priceValue = new JTextField(15);
             JLabel quantity = new JLabel("Quantity");
@@ -163,38 +167,68 @@ public class TradePanel extends JPanel {
                 System.out.println("Invalid action");
             }
         }
-
     }
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String stock= (String) stockValue.getSelectedItem();
             TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.CONSULT,stock,0,0);
-            TraderClient client = new TraderClient("localhost", 1347, request, "localhost", 1346);
+            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
             if(client.getmResponse() instanceof TraderPeerResponse){
-                    TraderPeerResponse result=(TraderPeerResponse)client.getmResponse();
+                    mCurrentConsResult=(TraderPeerResponse)client.getmResponse();
             }
-            priceValue.setText("");
+            stockValue.setSelectedItem(mCurrentConsResult.getStockName());
+            priceValue.setText(""+mCurrentConsResult.getPrice());
             priceValue.setEditable(false);
             repaint();
             }
-
     }
 
     private class SellListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String stock= (String) stockValue.getSelectedItem();
+            double price=0;
+            int quantity=0;
             try{
-                double price= Double.parseDouble(priceValue.getText());
-                int quantity = Integer.parseInt(quantityValue.getText());
+                price= Double.parseDouble(priceValue.getText());
+                quantity = Integer.parseInt(quantityValue.getText());
             }catch(NumberFormatException e){
                 String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
             }
+            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.SELL,stock, price,quantity);
+            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+            if(client.getmResponse() instanceof TraderPeerResponse){
+                mLastSaleResult=(TraderPeerResponse)client.getmResponse();
+            }
+            refreshFields();
         }
+    }
+
+    private void refreshFields() {
+        stockValue = new JComboBox<String>();
+        priceValue = new JTextField(15);
+        mCountry = new JComboBox<String>();
+        repaint();
     }
 
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-
-    }}
+                String stock= (String) stockValue.getSelectedItem();
+                double price=0;
+                int quantity=0;
+                try{
+                    price= Double.parseDouble(priceValue.getText());
+                    quantity = Integer.parseInt(quantityValue.getText());
+                }catch(NumberFormatException e){
+                    String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+                }
+                TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.BUY,stock, price,quantity);
+                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                if(client.getmResponse() instanceof TraderPeerResponse){
+                    mLastSaleResult=(TraderPeerResponse)client.getmResponse();
+                }
+                refreshFields();
+            }
+    }
 }
+
