@@ -121,16 +121,15 @@ public class Peer{
         }
     }
 
-    public TraderPeerResponse consult(TraderPeerRequest request){
+    public PeerPeerResponse consult(TraderPeerRequest request){
         TraderAction action = request.getAction();
         String stockName = request.getStock().getStock();
         String marketName = request.getStock().getMarket();
-        String continentName = request.getStock().getContinent();
 
         if(action != null && action == TraderAction.CONSULT) {
             if (this.market == marketName) {
                 double price = this.marketDAO.getPrice(stockName);
-                return new PeerPeerResponse(true, action, price, stockName);
+                return new PeerPeerResponse(true, action, price, stockName,0);
             } else {
                 if (!isSuper) {
                     try {
@@ -147,11 +146,12 @@ public class Peer{
 
                     }
                 } else {
-                    if (continentName == this.continent) {
+                        boolean isMyContinent = false;
                         for (PeerData peerData : peerNetwork) {
                             if (peerData.getMarket() == marketName) {
+                                isMyContinent = true;
                                 String ip = peerData.getIp();
-                                int port = peerData.getPort();
+                                int port = peerData.getPeerPort();
                                 try {
                                     Socket socket = new Socket(ip, port);
                                     BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -175,7 +175,8 @@ public class Peer{
                                 }
                             }
                         }
-                    } else {
+                        if(isMyContinent == false){
+
                         //Talk to super peer
 
                     }
