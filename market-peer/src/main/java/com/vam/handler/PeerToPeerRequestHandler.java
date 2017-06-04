@@ -56,6 +56,28 @@ public class PeerToPeerRequestHandler implements Runnable {
         } else if (message.getAction() == PeerToPeerAction.UPDATE_PEER_NETWORK) {
             logger.info("received a request to update my own network");
             peer.updateMyNetwork(message.getPeerNetwork());
+        } else if (message.getAction() == PeerToPeerAction.FIND_MARKET) {
+            if (peer.getIsSuper()) {
+                if (message.getTraderRequest().getMarket().equals(peer.getMarket())) {
+                    peer.
+                } else if (message.getTraderRequest().getContinent().equals(peer.getContinent()) { // it is in our continent, so find the right person and send along
+                    peer.findMarketInNetworkSendAlong(message);
+                } else {
+                    peer.superSendAlong(message);
+                }
+            } else { // the only way you get a find market and you are NOT super is if it is your market
+                peer.processMarketAction(message);
+            }
+        } else if (message.getAction() == PeerToPeerAction.MARKET_RESPONSE) { // only ones who should get this are supers to pass along or peers to be endpoint
+            if (peer.getIsSuper()) {
+                if (message.getTraderRequest().getContinent().equals(peer.getContinent()) { // it is in our continent, so find the right person and send along
+                    peer.findMarketInNetworkSendAlong(message);
+                } else {
+                    peer.superSendAlong(message);
+                }
+            } else {
+                peer.processMarketResponse(message);
+            }
         }
     }
 }

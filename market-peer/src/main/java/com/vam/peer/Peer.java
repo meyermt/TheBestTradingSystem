@@ -82,13 +82,72 @@ public class Peer{
         this.marketDAO = new MarketDAOSQLLite(QTY_CSV, PRICE_CSV, market);
     }
 
+    public boolean getIsSuper() {
+        return isSuper;
+    }
+
+    public String getContinent() {
+        return continent;
+    }
+
+    public void processMarketAction(PeerToPeerMessage message) {
+
+    }
+
+    public void processMarketResponse(PeerToPeerMessage message) {
+
+    }
+
+    public void findMarketInNetworkSendAlong(PeerToPeerMessage message) {
+        logger.info("Message for someone in my network");
+        peerNetwork.stream()
+                .forEach(peer -> {
+                    if (message.getTargetMarket().equals(peer.getMarket())) {
+                        passMessageToPeer(message, peer);
+                    }
+                });
+    }
+
+    public void superSendAlong(PeerToPeerMessage message) { // we know this is already not us
+        logger.info("Message for another peer being sent");
+        int targetInt = contMap.get(message.getTargetContinent());
+        if (targetInt < contMap.get(continent)) {
+            passMessageToSuper(message, leftPort);
+        } else {
+            passMessageToSuper(message, rightPort);
+        }
+    }
+
+    private void passMessageToSuper(PeerToPeerMessage message, int port) {
+        try {
+            Socket peerClient = new Socket("127.0.0.1", port);
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
+            output.println(gson.toJson(message));
+            peerClient.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void passMessageToPeer(PeerToPeerMessage message, PeerData peer) {
+        try {
+            Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
+            output.println(gson.toJson(message));
+            peerClient.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void registerWithSuperPeer(){
         logger.info("attempting to register with my super peer");
         try {
             Socket peerClient = new Socket("127.0.0.1", superPort);
             PeerData me = new PeerData(MY_IP, peerPort, traderPort, continent, country, market, false);
-            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.JOIN_PEER_NETWORK, me, Collections.emptyList());
+            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.JOIN_PEER_NETWORK, null, me, Collections.emptyList());
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
             output.println(gson.toJson(request));
@@ -324,6 +383,7 @@ public class Peer{
 
             ServerSocket serverSocket = new ServerSocket(traderPort);
             TraderListener traderListener = new TraderListener(this,serverSocket);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -417,13 +477,17 @@ public class Peer{
     private static Map<String, Integer> mapContinent() {
         Map<String, Integer> contMap = new HashMap<>();
         contMap.put("America-left", 0);
+        contMap.put("America", 8091);
         contMap.put("America-right", 8092);
         contMap.put("Europe-left", 8091);
+        contMap.put("Europe", 8092);
         contMap.put("Europe-right", 8093);
-        contMap.put("Africa-left", 8093);
+        contMap.put("Africa-left", 8092);
+        contMap.put("Africa", 8093);
         contMap.put("Africa-right", 8094);
         contMap.put("Asia-left", 8093);
-        contMap.put("Asia-right", 0);
+        contMap.put("Asia", 8094);
+        contMap.put("Asia-right", Integer.MAX_VALUE);
         return contMap;
     }
 
