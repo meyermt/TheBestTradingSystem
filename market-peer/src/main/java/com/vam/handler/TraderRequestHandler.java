@@ -31,7 +31,6 @@ public class TraderRequestHandler implements Runnable {
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
             TraderPeerRequest request = null;
             TraderPeerResponse response = null;
-            PeerPeerResponse peerPeerResponse = null;
             StringBuilder traderInputBuilder = new StringBuilder();
             String traderInput;
             while ((traderInput = br.readLine()) != null) {

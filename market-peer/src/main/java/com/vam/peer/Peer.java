@@ -133,22 +133,63 @@ public class Peer{
 
         PeerToPeerMessage peerToPeerMessage = null;
         TraderPeerRequest traderPeerRequest = message.getTraderRequest();
+        String sourceContinent = traderPeerRequest.getContinent();
         if(traderPeerRequest.getAction() == TraderAction.CONSULT){
-            TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
-            peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
-                    traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
-                } else {
-                    TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
-                    peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),
-                            traderPeerRequest,traderPeerResponse,null,null);
+        TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
+        peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
+                traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
+        } else {
+                TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
+                peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),
+                        traderPeerRequest,traderPeerResponse,null,null);
+        }
+        if(isSuper){
+            if (message.getTraderRequest().getContinent().equals(continent)) {
+                for (PeerData peer : peerNetwork) {
+                   if (peer.getMarket().equals(message.getSourceMarket())) {
+                       passMessageToPeer(peerToPeerMessage, peer);
+                   }
                 }
+            } else {
+                superSendAlong(peerToPeerMessage);
             }
-
+        } else {
+            passMessageToSuper(peerToPeerMessage, superPort);
+        }
     }
 
+
     public void processMarketResponse(PeerToPeerMessage message) {
+        if(!isSuper){
+            sendResponseToTrader(message);
+        } else {
+            if(message.getTargetContinent().equals(this.continent)){
+                for(PeerData peerData : peerNetwork){
+                    if(peerData.getMarket().equals(message.getTargetMarket())){
+                        passMessageToPeer(message,peerData);
+                    }
+                }
+            } else {
+                superSendAlong(message);
+            }
+        }
+
+
+
+    }
+    public void sendResponseToTrader(PeerToPeerMessage message){
         TraderPeerRequest traderPeerRequest = message.getTraderRequest();
         TraderPeerResponse traderPeerResponse = message.getResponse();
+        try {
+            Socket peerTrader = new Socket("127.0.0.1",traderPeerRequest.getSourcePort());
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(peerTrader.getOutputStream(), true);
+            output.println(gson.toJson(traderPeerResponse));
+            peerTrader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.info("Errors in sending the response from the trader to the source market");
+        }
 
     }
 
@@ -269,7 +310,7 @@ public class Peer{
         return this.market;
     }
 
-    
+
 
 
     public void start(){
