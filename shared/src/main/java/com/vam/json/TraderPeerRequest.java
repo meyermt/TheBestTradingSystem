@@ -13,7 +13,6 @@ import java.util.Date;
 
 
 public class TraderPeerRequest {
-
     private String sourceIP;
     private int sourcePort;
     private TraderAction action;
@@ -58,6 +57,7 @@ public class TraderPeerRequest {
 
     public String getContinent() {
         return continent;
+
     }
 
     public String getMarket() {
