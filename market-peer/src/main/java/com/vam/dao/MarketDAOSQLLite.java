@@ -75,7 +75,7 @@ public class MarketDAOSQLLite implements MarketDAO {
         String sql = "SELECT price FROM " + DB_NAME +
                 " WHERE stock = ?";
 
-        try (Connection conn = this.connect();
+        try (Connection conn = this.connect(DB_NAME);
              PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1,stock);
             ResultSet rs  = pstmt.executeQuery();
@@ -91,7 +91,7 @@ public class MarketDAOSQLLite implements MarketDAO {
         String sql = "UPDATE market SET price = ? "
                 + "WHERE stock = ?";
 
-        try (Connection conn = this.connect();
+        try (Connection conn = this.connect(DB_NAME);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // set the corresponding param
@@ -110,7 +110,7 @@ public class MarketDAOSQLLite implements MarketDAO {
         String sql = "SELECT quantity FROM " + DB_NAME +
                 " WHERE stock = ?";
 
-        try (Connection conn = this.connect();
+        try (Connection conn = this.connect(DB_NAME);
              PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1,stock);
             ResultSet rs  = pstmt.executeQuery();
@@ -126,7 +126,7 @@ public class MarketDAOSQLLite implements MarketDAO {
         String sql = "UPDATE market SET quantity = ? "
                 + "WHERE stock = ?";
 
-        try (Connection conn = this.connect();
+        try (Connection conn = this.connect(DB_NAME);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // set the corresponding param
