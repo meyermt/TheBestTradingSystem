@@ -65,13 +65,11 @@ public class TradePanel extends JPanel {
             JButton log = new JButton("Login");
             JLabel countryLabel = new JLabel("Country:*");
             mCountry = new JComboBox<String>();
-
             for (Country c : Country.values()) {
                 mCountry.addItem(c.getName());
             }
             ActionListener dealListener = new TradePanel.LoginListener();
             log.addActionListener(dealListener);
-
 
             add(usernameLabel, BorderLayout.CENTER);
             add(mUsernameText, BorderLayout.CENTER);
@@ -84,6 +82,7 @@ public class TradePanel extends JPanel {
         }
 
         if (ScreenState == 1) {
+            int rows = mLoginResult.getStocks().size();
 
             //Draw the main menu
             JLabel usernameLabel = new JLabel("Hello " + mUsername);
@@ -102,19 +101,20 @@ public class TradePanel extends JPanel {
             JLabel stock = new JLabel("Stock:");
             stockValue = new JComboBox<String>();
 
-            for (Stock c : mLoginResult.getStocks()) {
-                mCountry.addItem(c.getStock());
-            }
 
             JLabel price = new JLabel("Price($):");
             priceValue = new JTextField(15);
             JLabel quantity = new JLabel("Quantity");
             quantityValue = new JTextField(15);
-            int rows = mStock.size();
+
             JTextArea availableStocks = new JTextArea(rows, 1);
-            for (Stock stockName : mStock.values()) {
-                //Code
+            String concatStock="";
+            for (Stock c : mLoginResult.getStocks()) {
+                concatStock+=c.getStock()+"\n";
+                stockValue.addItem(c.getStock());
+
             }
+            availableStocks.setText(concatStock);
 
             add(usernameLabel, BorderLayout.NORTH);
             add(availableStocks,BorderLayout.WEST);
@@ -235,34 +235,24 @@ public class TradePanel extends JPanel {
 
     private void processResult(String process) {
         if (process.equals("consult")) {
-
+            JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+            add(resultAlert);
+            repaint();
             if(mCurrentConsResult.succeed()){
                 stockValue.setSelectedItem(mCurrentConsResult.getStockName());
                 priceValue.setText("" + mCurrentConsResult.getPrice());
                 priceValue.setEditable(false);
                 refreshFields();
             }
-            else{
-          JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
-          repaint();
-            }
         }
         else if (process.equals("sell")){
             if(mLastSaleResult.succeed()){
                 refreshFields();
             }
-            else{
-                JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
-                repaint();
-            }
         }
         else if (process.equals("buy")){
             if(mLastSaleResult.succeed()){
                 refreshFields();
-            }
-            else{
-                JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
-                repaint();
             }
         }
         else{
