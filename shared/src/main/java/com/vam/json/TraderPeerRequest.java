@@ -29,10 +29,6 @@ public class TraderPeerRequest {
             this.shares = shares;
     }
 
-    public String getTrader() {
-        return trader;
-    }
-
     public TraderAction getAction() {
         return action;
     }

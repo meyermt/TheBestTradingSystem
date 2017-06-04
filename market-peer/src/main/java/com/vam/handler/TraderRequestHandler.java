@@ -1,9 +1,11 @@
-package com.vam.json;
+package com.vam.handler;
 
 import java.io.*;
 import java.net.Socket;
 
 import com.google.gson.*;
+import com.vam.json.*;
+import com.vam.peer.Peer;
 
 
 public class TraderRequestHandler implements Runnable {
@@ -25,14 +27,12 @@ public class TraderRequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
             TraderPeerRequest request = null;
-            PeerRequest peerRequest = null;
-            PeerResponse peerResponse = null;
+            PeerSPRequest peerRequest = null;
+            PeerSPResponse peerResponse = null;
             while (true) {
                 //Get request from trader
                 request = gson.fromJson(br.readLine(), TraderPeerRequest.class);
 
-                peerRequest = new PeerRequest(request.getDate(),request.getTrader(),request.getAction(),
-                        request.getStock(),request.getShares());
 
 
                 //Process request

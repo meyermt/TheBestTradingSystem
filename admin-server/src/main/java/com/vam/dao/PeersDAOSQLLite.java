@@ -24,6 +24,7 @@ public class PeersDAOSQLLite implements PeersDAO {
     private static final String DB_NAME = "peers";
     private static final String PEERS_DB_FILE = "peers.db";
     private static final String BACKUP_DIR = "backup";
+    private static final String IP = "127.0.0.1";
     private final Path backupFile;
     private final File dbFile;
 
@@ -36,6 +37,7 @@ public class PeersDAOSQLLite implements PeersDAO {
         backupFile = Paths.get(BACKUP_DIR, PEERS_DB_FILE);
         if (!dbFile.isFile()) { // need to create a new db
             initNewDBAndTable();
+            initSPEntries();
         }
         // check if our backup dir exists or not
         if (!backupDir.isDirectory()) {
@@ -44,12 +46,20 @@ public class PeersDAOSQLLite implements PeersDAO {
         }
     }
 
+    public void initSPEntries() {
+        // once distributed would need to update the IPs
+        insertPeer(IP, 8091, "America", "USA", "New York Stock Exchange", true);
+        insertPeer(IP, 8092, "Asia", "Japan", "Tokyo", true);
+        insertPeer(IP, 8093, "Europe", "France", "Euronext Paris", true);
+        insertPeer(IP, 8094, "Africa", "South Africa", "Johannesburg", true);
+    }
+
     public void insertPeer(String ip, int port, String continent, String country, String market, boolean isSuper) {
         String delSql = "DELETE FROM peers WHERE market = ?";
         String sql = "INSERT INTO peers(ip, port, continent, country, market, super) VALUES(?,?,?,?,?,?)";
 
         try (Connection conn = this.connect(DB_NAME);
-            PreparedStatement pstmt = conn.prepareStatement(delSql)) {
+             PreparedStatement pstmt = conn.prepareStatement(delSql)) {
             pstmt.setString(1, market);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -118,7 +128,7 @@ public class PeersDAOSQLLite implements PeersDAO {
 
     private List<PeerData> getPeerOneWhere(String sql, String clause) {
         try (Connection conn = this.connect(DB_NAME);
-            PreparedStatement pstmt  = conn.prepareStatement(sql)){
+             PreparedStatement pstmt  = conn.prepareStatement(sql)){
             pstmt.setString(1, clause);
             ResultSet rs    = pstmt.executeQuery();
 
