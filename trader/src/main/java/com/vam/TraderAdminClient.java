@@ -18,6 +18,7 @@ public class TraderAdminClient {
     private final int mPortNumber;
     private  InetAddress msourceHost;
     private final int mSourcePort;
+    private AdminTraderResponse mResponse;
 
     public TraderAdminClient(String hostName, int portNumber,Object request,String sourceName, int sourcePortNumber) {
 
@@ -29,12 +30,15 @@ public class TraderAdminClient {
             e.printStackTrace();
         }
         this.mPortNumber= portNumber;
-
         this.mSourcePort= sourcePortNumber;
-        createSocketAndSend(request);
+        mResponse=createSocketAndSend(request);
     }
 
-    public void createSocketAndSend(Object serialize){
+    public AdminTraderResponse getmResponse() {
+        return mResponse;
+    }
+
+    public AdminTraderResponse createSocketAndSend(Object serialize){
 
         try(
                 Socket traderClientSocket = new Socket(mHostName, mPortNumber,msourceHost,mSourcePort);
@@ -55,15 +59,13 @@ public class TraderAdminClient {
                 //Read the server response and attempt to parse it as JSON
                 GsonBuilder gsonBuilder = new GsonBuilder();
                 Gson gson2 = gsonBuilder.create();
-                AdminTraderResponse response = gson2.fromJson(in,AdminTraderResponse.class);
-                break;
-
+                return gson2.fromJson(in,AdminTraderResponse.class);
             }
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        return null;
     }
 }

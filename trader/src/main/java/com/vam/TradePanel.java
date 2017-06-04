@@ -6,10 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
-import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +27,9 @@ public class TradePanel extends JPanel {
     private JTextField mPasswordText;
     private JComboBox<String> mCountry;
     private boolean isLoginValid;
+    private JTextField stockValue;
+    private JTextField priceValue;
+    private JTextField quantityValue;
 
     public TradePanel() {
 
@@ -96,11 +95,11 @@ public class TradePanel extends JPanel {
             buy.addActionListener(buyListener);
 
             JLabel stock = new JLabel("Stock:");
-            JTextField stock_value = new JTextField(15);
+            stockValue = new JTextField(15);
             JLabel price = new JLabel("Price:");
-            JTextField price_value = new JTextField(15);
+            priceValue = new JTextField(15);
             JLabel quantity = new JLabel("Quantity");
-            JTextField quantity_value = new JTextField(15);
+            quantityValue = new JTextField(15);
             int rows = mStock.size();
             JTextArea availableStocks = new JTextArea(rows, 1);
             for (Stock stockName : mStock.values()) {
@@ -110,11 +109,11 @@ public class TradePanel extends JPanel {
             add(usernameLabel, BorderLayout.NORTH);
             add(availableStocks,BorderLayout.WEST);
             add(stock, BorderLayout.CENTER);
-            add(stock_value, BorderLayout.CENTER);
+            add(stockValue, BorderLayout.CENTER);
             add(price, BorderLayout.CENTER);
-            add(price_value, BorderLayout.CENTER);
+            add(priceValue, BorderLayout.CENTER);
             add(quantity, BorderLayout.CENTER);
-            add(quantity_value, BorderLayout.CENTER);
+            add(quantityValue, BorderLayout.CENTER);
             add(consPrice, BorderLayout.CENTER);
             add(sell, BorderLayout.CENTER);
             add(buy, BorderLayout.CENTER);
@@ -149,7 +148,6 @@ public class TradePanel extends JPanel {
             }
         }
 
-
         private void processLogin(AdminTraderResponse adminTraderResponse) {
             if (adminTraderResponse.getCode().equals(AdminTraderResponseCode.OK)){
                 isLoginValid=true;
@@ -166,18 +164,13 @@ public class TradePanel extends JPanel {
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
+
             (String traderName, TraderAction action, String stock,int shares){
-                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAdminAction.LOGIN, country, "");
+                TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.CONSULT,);
                 TraderAdminClient client = new TraderAdminClient("localhost", 1347, request, "localhost", 1346);
 
                 processLogin(client.getmResponse());
 
-                if (isLoginValid) {
-                    ScreenState = 1;
-                    changeState();
-                } else {
-                    JLabel problem = new JLabel("There's a problem with your login");
-                }
             }
         }
     }
