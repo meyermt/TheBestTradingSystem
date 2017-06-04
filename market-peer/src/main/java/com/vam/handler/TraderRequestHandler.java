@@ -39,11 +39,11 @@ public class TraderRequestHandler implements Runnable {
                     if (request.getAction() == TraderAction.CONSULT) {
                         peerPeerResponse = peer.consult(request);
                         response = new TraderPeerResponse(true, peerPeerResponse.getAction(),peerPeerResponse.getPrice(),
-                                peerPeerResponse.getStock());
+                                peerPeerResponse.getStock(),peerPeerResponse.getShares());
                     } else {
                         peerPeerResponse = peer.transact(request);
                         response = new TraderPeerResponse(true, peerPeerResponse.getAction(),peerPeerResponse.getPrice(),
-                                peerPeerResponse.getStock());
+                                peerPeerResponse.getStock(),peerPeerResponse.getShares());
                     }
                 } else {
                     System.out.println("The request from the trader is null");

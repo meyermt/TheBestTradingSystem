@@ -7,7 +7,6 @@ import com.vam.handler.PeerSpRequestHandler;
 import com.vam.handler.TraderRequestHandler;
 import com.vam.json.*;
 import org.apache.commons.cli.*;
-import org.jgroups.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,12 +143,12 @@ public class Peer{
                                     Gson gson = new Gson();
                                     pw.println(gson.toJson(peerPeerRequest));
                                     socket.setSoTimeout(1000);
-
+                                    System.out.println("Timeout");
                                     PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(),PeerPeerResponse.class);
                                     if(peerPeerResponse != null) {
                                         return peerPeerResponse;
                                     } else {
-                                        return new PeerPeerResponse(false,request.getAction(),0.0,stockName);
+                                        return new PeerPeerResponse(false,request.getAction(),0.0,stockName,0);
                                     }
 
 
@@ -160,7 +159,7 @@ public class Peer{
                         }
                     } else {
                         //Talk to super peer
-                        
+
                     }
 
                 }
@@ -177,13 +176,20 @@ public class Peer{
         TraderAction action = request.getAction();
         String stockName = request.getStock().getStock();
         int shares = request.getShares();
-        if(action != null){
-            if(action == TraderAction.BUY){
-
-                int quantity = this.marketDAO.getQuantity(stockName);
-                if(quantity > shares){
-                    this.marketDAO.updateQuantity(stockName,quantity - shares);
-                    return new PeerPeerResponse(true,request.getAction(),shares,stockName);
+        if(action != null) {
+            if (!isSuper) {
+                if (action == TraderAction.BUY) {
+                    int quantity = this.marketDAO.getQuantity(stockName);
+                    if (quantity > shares) {
+                        this.marketDAO.updateQuantity(stockName, quantity - shares);
+                        return new PeerPeerResponse(true, request.getAction(), shares, stockName,request.getShares());
+                    } else {
+                        return new PeerPeerResponse(false, request.getAction(),shares,stockName,0);
+                    }
+                } else {
+                    int qty = this.marketDAO.getQuantity(stockName);
+                    this.marketDAO.updateQuantity(stockName,qty + shares);
+                    return new PeerPeerResponse(true,request.getAction(),shares,stockName,request.getShares());
                 }
             }
         }
