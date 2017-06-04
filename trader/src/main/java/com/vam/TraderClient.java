@@ -44,13 +44,12 @@ public class TraderClient {
                 Socket traderClientSocket = new Socket(mHostName, mPortNumber,msourceHost,mSourcePort);
 
                 DataOutputStream out = new DataOutputStream(traderClientSocket.getOutputStream());
-
+                PrintWriter outprinter =new PrintWriter(traderClientSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(traderClientSocket.getInputStream()))
                 ) {
             //Send request
             Gson gson = new Gson();
-            out.writeBytes(gson.toJson(serialize));
-            out.writeBytes("Bye");
+            outprinter.println(gson.toJson(serialize)+"\n");
             System.out.println("sent Gson as Json");
             String fromAdminServer;
 
