@@ -145,7 +145,7 @@ public class TradePanel extends JPanel {
     private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String country= (String) mCountry.getSelectedItem();
-            TraderAdminRequest request= new TraderAdminRequest("localhost",1346, TraderAdminAction.LOGIN,country,"");
+            TraderAdminRequest request= new TraderAdminRequest("127.0.0.1",1346, TraderAdminAction.LOGIN,country,"");
             TraderClient client = new TraderClient("localhost",1347,request,"localhost",1346);
             if(client.getmResponse() instanceof AdminTraderResponse){
                 mLoginResult=(AdminTraderResponse)client.getmResponse();
