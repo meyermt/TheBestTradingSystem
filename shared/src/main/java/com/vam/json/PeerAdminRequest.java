@@ -13,18 +13,20 @@ public class PeerAdminRequest {
     private String market;
     private List<PeerData> peers;
     private String sourceIP;
-    private int sourcePort;
+    private int sourceTraderPort;
+    private int sourcePeerPort;
 
     public PeerAdminRequest() {}
 
-    public PeerAdminRequest(PeerAdminAction action, String continent, String country, String market, List<PeerData> peers, String sourceIP, int sourcePort) {
+    public PeerAdminRequest(PeerAdminAction action, String continent, String country, String market, List<PeerData> peers, String sourceIP, int sourceTraderPort, int sourcePeerPort) {
         this.action = action;
         this.continent = continent;
         this.country = country;
         this.market = market;
         this.peers = peers;
         this.sourceIP = sourceIP;
-        this.sourcePort = sourcePort;
+        this.sourceTraderPort = sourceTraderPort;
+        this.sourcePeerPort = sourcePeerPort;
     }
 
     @Override
@@ -36,24 +38,13 @@ public class PeerAdminRequest {
                 ", market='" + market + '\'' +
                 ", peers=" + peers +
                 ", sourceIP='" + sourceIP + '\'' +
-                ", sourcePort=" + sourcePort +
+                ", sourceTraderPort=" + sourceTraderPort +
+                ", sourcePeerPort=" + sourcePeerPort +
                 '}';
     }
 
     public PeerAdminAction getAction() {
         return action;
-    }
-
-    public String getMarket() {
-        return market;
-    }
-
-    public String getSourceIP() {
-        return sourceIP;
-    }
-
-    public int getSourcePort() {
-        return sourcePort;
     }
 
     public String getContinent() {
@@ -64,7 +55,23 @@ public class PeerAdminRequest {
         return country;
     }
 
+    public String getMarket() {
+        return market;
+    }
+
     public List<PeerData> getPeers() {
         return peers;
+    }
+
+    public String getSourceIP() {
+        return sourceIP;
+    }
+
+    public int getSourceTraderPort() {
+        return sourceTraderPort;
+    }
+
+    public int getSourcePeerPort() {
+        return sourcePeerPort;
     }
 }

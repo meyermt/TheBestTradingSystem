@@ -67,7 +67,7 @@ public class TraderClientHandler implements Runnable{
                 int peerNum = rn.nextInt(peers.size()); // randomize which peer to connect to in a country
                 PeerData connectPeer = peers.get(peerNum);
                 List<Stock> stocks = stocksDB.getAllStocks();
-                AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.OK, connectPeer.getIp(), connectPeer.getPort(), stocks);
+                AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.OK, connectPeer.getIp(), connectPeer.getTraderPort(), stocks);
                 sendResponse(client, response);
             }
         } else if (request.getAction() == TraderAdminAction.LOGOUT) {

@@ -8,11 +8,15 @@ public class TraderPeerResponse {
     private boolean succeed;
     private TraderAction action;
     private double price;
+    private String stock;
+    private int shares;
 
-    public TraderPeerResponse(boolean succeed, TraderAction action, double price){
+    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock, int shares){
         this.succeed = succeed;
         this.action = action;
         this.price = price;
+        this.stock = stock;
+        this.shares = shares;
     }
 
 
@@ -27,6 +31,7 @@ public class TraderPeerResponse {
     public TraderAction getAction(){
         return this.action;
     }
+
 
     public String toString(){
         if(this.action == TraderAction.CONSULT){
