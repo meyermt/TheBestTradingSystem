@@ -28,6 +28,7 @@ public class TraderRequestHandler implements Runnable {
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
             TraderPeerRequest request = null;
             TraderPeerResponse response = null;
+            PeerPeerResponse peerPeerResponse = null;
 
             while (true) {
                 //Get request from trader
@@ -36,9 +37,13 @@ public class TraderRequestHandler implements Runnable {
                 //Process request
                 if(request != null) {
                     if (request.getAction() == TraderAction.CONSULT) {
-                        response = peer.consult(request);
+                        peerPeerResponse = peer.consult(request);
+                        response = new TraderPeerResponse(true, peerPeerResponse.getAction(),peerPeerResponse.getPrice(),
+                                peerPeerResponse.getStock());
                     } else {
-                        response = peer.transact(request);
+                        peerPeerResponse = peer.transact(request);
+                        response = new TraderPeerResponse(true, peerPeerResponse.getAction(),peerPeerResponse.getPrice(),
+                                peerPeerResponse.getStock());
                     }
                 } else {
                     System.out.println("The request from the trader is null");

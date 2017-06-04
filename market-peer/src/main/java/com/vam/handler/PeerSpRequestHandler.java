@@ -12,7 +12,7 @@ import java.net.*;
 /**
  * Peer- Super Peer Request
  */
-public class PeerSpRequestHandler {
+public class PeerSpRequestHandler implements Runnable {
 
     private Socket socket;
 
@@ -38,4 +38,5 @@ public class PeerSpRequestHandler {
                 e.printStackTrace();
             }
         }
+    }
 }
