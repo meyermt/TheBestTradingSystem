@@ -50,6 +50,7 @@ public class TraderClient {
             //Send request
             Gson gson = new Gson();
             out.writeBytes(gson.toJson(serialize));
+            out.writeBytes("Bye");
             System.out.println("sent Gson as Json");
             String fromAdminServer;
 
