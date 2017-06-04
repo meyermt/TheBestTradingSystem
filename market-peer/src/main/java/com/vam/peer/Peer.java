@@ -1,6 +1,8 @@
 package com.vam.peer;
 
 import com.google.gson.Gson;
+import com.vam.dao.MarketDAO;
+import com.vam.dao.MarketDAOSQLLite;
 import com.vam.handler.TraderRequestHandler;
 import com.vam.json.*;
 import org.apache.commons.cli.*;
@@ -48,9 +50,6 @@ public class Peer{
     private static List<PeerData> peerNetwork = Collections.emptyList();
     private static List<PeerData> superpeerNetwork = Collections.emptyList();
 
-    //private PeerData mySuper = null;
-
-
     private int port;
     private int superPort;
     private String continent;
@@ -58,6 +57,7 @@ public class Peer{
     private String market;
     private boolean isSuper;
     private Map<String, Stock> stockMap;
+    private MarketDAO marketDAO;
 
     public Peer(int port, String continent, String country, String market, boolean isSuper, int superPort){
 
@@ -68,7 +68,7 @@ public class Peer{
         this.isSuper = isSuper;
         this.superPort = superPort;
         this.stockMap = new HashMap<>();
-
+        this.marketDAO = new MarketDAOSQLLite(QTY_CSV, PRICE_CSV, market);
     }
 
 
