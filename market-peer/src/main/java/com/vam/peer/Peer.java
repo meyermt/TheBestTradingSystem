@@ -132,14 +132,16 @@ public class Peer{
 
     public void processMarketAction(PeerToPeerMessage message) {
 
+        PeerToPeerMessage peerToPeerMessage = null;
         TraderPeerRequest traderPeerRequest = message.getTraderRequest();
         if(traderPeerRequest.getAction() == TraderAction.CONSULT){
             TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
-            PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
+            peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
                     traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
         } else {
             TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
-
+            peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),
+                    traderPeerRequest,traderPeerResponse,null,null);
         }
     }
 
@@ -262,6 +264,7 @@ public class Peer{
     public String getMarket(){
         return this.market;
     }
+
 
     public void start(){
 
