@@ -36,6 +36,8 @@ public class Peer{
     private static final String SUPER_ARG = "super";
     private static final String SUPER_PORT_ARG = "superPort";
     private static final String MY_IP = "127.0.0.1";
+    private static final String QTY_CSV = "qty_stocks.csv";
+    private static final String PRICE_CSV = "price_stocks.csv";
 
     private static final Logger logger = LoggerFactory.getLogger(Peer.class);
     private static DateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm");
@@ -147,9 +149,7 @@ public class Peer{
 
     public void start(){
 
-
         registerWithSuperPeer();
-
 
 
         ExecutorService pool = Executors.newCachedThreadPool();
@@ -246,10 +246,8 @@ public class Peer{
     public static void main(String[] args){
         Map<String, String> peerOpts = loadPeerOpts(args);
         Peer peer = new Peer(Integer.parseInt(peerOpts.get(PORT_ARG)), peerOpts.get(CONTINENT_ARG), peerOpts.get(COUNTRY_ARG),
-                peerOpts.get(MARKET_ARG), peerOpts.get(QUANT_FILE_ARG), peerOpts.get(PRICE_FILE_ARG));
-
+                peerOpts.get(MARKET_ARG), Boolean.parseBoolean(peerOpts.get(SUPER_ARG)), Integer.parseInt(peerOpts.get(SUPER_PORT_ARG)));
         peer.start();
-
     }
 
     private static Map<String, String> loadPeerOpts(String[] args) {
