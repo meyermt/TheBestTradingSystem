@@ -24,21 +24,33 @@ public class TraderPeerResponse {
     }
 
 
-    public String getStockName() {
-        return stockName;
+    public boolean isSucceed() {
+        return succeed;
     }
-    public boolean succeed() {
-        return this.succeed;
+
+    public TraderAction getAction() {
+        return action;
     }
 
     public double getPrice() {
-        return this.price;
+        return price;
     }
 
-    public TraderAction getAction(){
-        return this.action;
+    public String getStock() {
+        return stock;
     }
 
+    public int getShares() {
+        return shares;
+    }
+
+    public String getTargetIP() {
+        return targetIP;
+    }
+
+    public int getTargetPort() {
+        return targetPort;
+    }
 
     public String toString(){
         if(this.action == TraderAction.CONSULT){

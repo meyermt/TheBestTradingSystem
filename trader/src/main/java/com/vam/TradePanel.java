@@ -1,6 +1,8 @@
 package com.vam;
 
 import com.vam.json.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import javax.swing.*;
@@ -35,6 +37,7 @@ public class TradePanel extends JPanel {
     private AdminTraderResponse mLoginResult;
     private TraderPeerResponse mCurrentConsResult;
     private TraderPeerResponse mLastSaleResult;
+    private Logger logger = LoggerFactory.getLogger(TradePanel.class);
 
     public TradePanel() {
 
@@ -145,64 +148,64 @@ public class TradePanel extends JPanel {
     private class LoginListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String country= (String) mCountry.getSelectedItem();
+            logger.info("country i got was {}", country);
             TraderAdminRequest request= new TraderAdminRequest("127.0.0.1",1346, TraderAdminAction.LOGIN,country,"");
-            TraderClient client = new TraderClient("localhost",1347,request,"localhost",1346);
-            if(client.getmResponse() instanceof AdminTraderResponse){
-                mLoginResult=(AdminTraderResponse)client.getmResponse();
-            }
-            processLogin(mLoginResult);
-            if (isLoginValid) {
-                mUsername = mUsernameText.getText();
-                mPassword = mPasswordText.getText();
-                ScreenState = 1;
-                changeState();
-            } else {
-                JLabel problem = new JLabel("There's a problem with your login");
-            }
+            TraderClient client = new TraderClient("127.0.0.1",1347,request,"127.0.0.1",1346);
+            client.sendLoginRequest(request);
+            //processLogin(mLoginResult);
         }
+    }
 
-        private void processLogin(AdminTraderResponse adminTraderResponse) {
-            if (adminTraderResponse.getCode().equals(AdminTraderResponseCode.OK)){
-                isLoginValid=true;
-            }
-            else if(adminTraderResponse.getCode().equals(AdminTraderResponseCode.NO_AVAILABLE_PEER)){
-                String sadMessage = JOptionPane.showInputDialog("No avaliable peers");
-            }
-            else {
-                System.out.println("Invalid action");
-            }
+    public void processLogin(AdminTraderResponse adminTraderResponse) {
+        mLoginResult = adminTraderResponse;
+        if (adminTraderResponse.getCode().equals(AdminTraderResponseCode.OK)){
+            isLoginValid=true;
+        }
+        else if(adminTraderResponse.getCode().equals(AdminTraderResponseCode.NO_AVAILABLE_PEER)){
+            String sadMessage = JOptionPane.showInputDialog("No avaliable peers");
+        }
+        else {
+            System.out.println("Invalid action");
+        }
+        if (isLoginValid) {
+            mUsername = mUsernameText.getText();
+            mPassword = mPasswordText.getText();
+            ScreenState = 1;
+            changeState();
+        } else {
+            JLabel problem = new JLabel("There's a problem with your login");
         }
     }
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            String stock= (String) stockValue.getSelectedItem();
-            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.CONSULT,stock,0,0);
-            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-            if(client.getmResponse() instanceof TraderPeerResponse){
-                    mCurrentConsResult=(TraderPeerResponse)client.getmResponse();
-            }
-            processResult("consult");
+//            String stock= (String) stockValue.getSelectedItem();
+//            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.CONSULT,stock,0,0);
+//            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+//            if(client.getmResponse() instanceof TraderPeerResponse){
+//                    mCurrentConsResult=(TraderPeerResponse)client.getmResponse();
+//            }
+//            processResult("consult");
             }
     }
 
     private class SellListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            String stock= (String) stockValue.getSelectedItem();
-            double price=0;
-            int quantity=0;
-            try{
-                price= Double.parseDouble(priceValue.getText());
-                quantity = Integer.parseInt(quantityValue.getText());
-            }catch(NumberFormatException e){
-                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
-            }
-            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.SELL,stock, price,quantity);
-            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-            if(client.getmResponse() instanceof TraderPeerResponse){
-                mLastSaleResult=(TraderPeerResponse)client.getmResponse();
-            }
-            processResult("sell");
+//            String stock= (String) stockValue.getSelectedItem();
+//            double price=0;
+//            int quantity=0;
+//            try{
+//                price= Double.parseDouble(priceValue.getText());
+//                quantity = Integer.parseInt(quantityValue.getText());
+//            }catch(NumberFormatException e){
+//                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+//            }
+//            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.SELL,stock, price,quantity);
+//            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+//            if(client.getmResponse() instanceof TraderPeerResponse){
+//                mLastSaleResult=(TraderPeerResponse)client.getmResponse();
+//            }
+//            processResult("sell");
         }
     }
 
@@ -215,49 +218,49 @@ public class TradePanel extends JPanel {
 
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-                String stock= (String) stockValue.getSelectedItem();
-                double price=0;
-                int quantity=0;
-                try{
-                    price= Double.parseDouble(priceValue.getText());
-                    quantity = Integer.parseInt(quantityValue.getText());
-                }catch(NumberFormatException e){
-                    String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
-                }
-                TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.BUY,stock, price,quantity);
-                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-                if(client.getmResponse() instanceof TraderPeerResponse){
-                    mLastSaleResult=(TraderPeerResponse)client.getmResponse();
-                }
-                processResult("buy");
+//                String stock= (String) stockValue.getSelectedItem();
+//                double price=0;
+//                int quantity=0;
+//                try{
+//                    price= Double.parseDouble(priceValue.getText());
+//                    quantity = Integer.parseInt(quantityValue.getText());
+//                }catch(NumberFormatException e){
+//                    String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+//                }
+//                TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.BUY,stock, price,quantity);
+//                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+//                if(client.getmResponse() instanceof TraderPeerResponse){
+//                    mLastSaleResult=(TraderPeerResponse)client.getmResponse();
+//                }
+//                processResult("buy");
             }
     }
 
     private void processResult(String process) {
-        if (process.equals("consult")) {
-            JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
-            add(resultAlert);
-            repaint();
-            if(mCurrentConsResult.succeed()){
-                stockValue.setSelectedItem(mCurrentConsResult.getStockName());
-                priceValue.setText("" + mCurrentConsResult.getPrice());
-                priceValue.setEditable(false);
-                refreshFields();
-            }
-        }
-        else if (process.equals("sell")){
-            if(mLastSaleResult.succeed()){
-                refreshFields();
-            }
-        }
-        else if (process.equals("buy")){
-            if(mLastSaleResult.succeed()){
-                refreshFields();
-            }
-        }
-        else{
-            throw new IllegalStateException("Process must be consult, sell or buy");
-        }
+//        if (process.equals("consult")) {
+//            JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+//            add(resultAlert);
+//            repaint();
+//            if(mCurrentConsResult.succeed()){
+//                stockValue.setSelectedItem(mCurrentConsResult.getStockName());
+//                priceValue.setText("" + mCurrentConsResult.getPrice());
+//                priceValue.setEditable(false);
+//                refreshFields();
+//            }
+//        }
+//        else if (process.equals("sell")){
+//            if(mLastSaleResult.succeed()){
+//                refreshFields();
+//            }
+//        }
+//        else if (process.equals("buy")){
+//            if(mLastSaleResult.succeed()){
+//                refreshFields();
+//            }
+//        }
+//        else{
+//            throw new IllegalStateException("Process must be consult, sell or buy");
+//        }
     }
 }
 
