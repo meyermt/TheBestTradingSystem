@@ -67,7 +67,7 @@ public class TradeFrame extends JFrame{
 
         ServerSocket peerSocket = new ServerSocket(1345);
         PeerListener peerListener = new PeerListener(mPanel, peerSocket);
-        new Thread(adminListener).start();
+        new Thread(peerListener).start();
 
         //Let the controller be the listener for the all actions that happen on the panel
         //Add the panel to the window's content panel.
