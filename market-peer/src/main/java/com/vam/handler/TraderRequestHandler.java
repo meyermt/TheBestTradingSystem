@@ -35,6 +35,7 @@ public class TraderRequestHandler implements Runnable {
             while ((traderInput = br.readLine()) != null) {
                     traderInputBuilder.append(traderInput);
             }
+            logger.info(traderInputBuilder.toString());
 
             TraderPeerRequest traderPeerRequest = gson.fromJson(traderInputBuilder.toString(),TraderPeerRequest.class);
             TraderPeerResponse traderPeerResponse = null;
@@ -48,6 +49,7 @@ public class TraderRequestHandler implements Runnable {
                 //pw.println(gson.toJson(traderPeerResponse));
                 Socket respClient = tryClient(traderPeerRequest.getSourceIP(), traderPeerRequest.getSourcePort());
                 sendResponse(respClient, traderPeerResponse);
+                logger.info(traderPeerResponse.toString());
 
             } else {
                     PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.FIND_MARKET,peer.getMarket(),
