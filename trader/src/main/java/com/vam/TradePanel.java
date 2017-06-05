@@ -129,7 +129,7 @@ public class TradePanel extends JPanel {
             add(consPrice, BorderLayout.CENTER);
             add(sell, BorderLayout.CENTER);
             add(buy, BorderLayout.CENTER);
-            add(scroll,BorderLayout.SOUTH);
+         //   add(scroll,BorderLayout.SOUTH);
         }
         //Logout?
         if (ScreenState == 2) {
@@ -177,33 +177,45 @@ public class TradePanel extends JPanel {
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-//            String stock= (String) stockValue.getSelectedItem();
-//            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.CONSULT,stock,0,0);
-//            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-//            if(client.getmResponse() instanceof TraderPeerResponse){
-//                    mCurrentConsResult=(TraderPeerResponse)client.getmResponse();
-//            }
-//            processResult("consult");
+            String selectedStock= (String) stockValue.getSelectedItem();
+            double price=0;
+            int quantity=0;
+            try{
+                price= Double.parseDouble(priceValue.getText());
+                quantity = Integer.parseInt(quantityValue.getText());
+            }catch(NumberFormatException e){
+                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
             }
+            Stock stockItem = mLoginResult.getStocks().stream()
+                    .filter(stock -> stock.getStock().equals(selectedStock))
+                    .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
+            TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
+                    stockItem.getMarket(), quantity, price);
+            //TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.BUY,stock, price,quantity);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
+            client.sendPeerRequest(request);
+        }
     }
 
     private class SellListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-//            String stock= (String) stockValue.getSelectedItem();
-//            double price=0;
-//            int quantity=0;
-//            try{
-//                price= Double.parseDouble(priceValue.getText());
-//                quantity = Integer.parseInt(quantityValue.getText());
-//            }catch(NumberFormatException e){
-//                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
-//            }
-//            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.SELL,stock, price,quantity);
-//            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-//            if(client.getmResponse() instanceof TraderPeerResponse){
-//                mLastSaleResult=(TraderPeerResponse)client.getmResponse();
-//            }
-//            processResult("sell");
+            String selectedStock= (String) stockValue.getSelectedItem();
+            double price=0;
+            int quantity=0;
+            try{
+                price= Double.parseDouble(priceValue.getText());
+                quantity = Integer.parseInt(quantityValue.getText());
+            }catch(NumberFormatException e){
+                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+            }
+            Stock stockItem = mLoginResult.getStocks().stream()
+                    .filter(stock -> stock.getStock().equals(selectedStock))
+                    .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
+            TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.SELL, stockItem, stockItem.getContinent(),
+                    stockItem.getMarket(), quantity, price);
+            //TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.BUY,stock, price,quantity);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
+            client.sendPeerRequest(request);
         }
     }
 
@@ -234,6 +246,26 @@ public class TradePanel extends JPanel {
                 TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
                 client.sendPeerRequest(request);
             }
+    }
+
+    private void processConsultResponse(TraderPeerResponse response) {
+        mCurrentConsResult = response;
+        logger.info("processing a consult request from my peer");
+        JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+        add(resultAlert);
+        repaint();
+        stockValue.setSelectedItem(mCurrentConsResult.getStock());
+        priceValue.setText("" + mCurrentConsResult.getPrice());
+        priceValue.setEditable(false);
+        refreshFields();
+    }
+
+    private void processSellResponse(TraderPeerResponse response) {
+        logger.info("processing a sell request from my peer");
+    }
+
+    private void processBuyResponse(TraderPeerResponse response) {
+        logger.info("processing a buy request from my peer");
     }
 
     private void processResult(String process) {
