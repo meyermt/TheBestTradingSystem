@@ -256,6 +256,7 @@ public class TradePanel extends JPanel {
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
         priceValue.setText("" + mCurrentConsResult.getPrice());
         priceValue.setEditable(false);
+        quantityValue.setEditable(true);
         refreshFields();
     }
 
