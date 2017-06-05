@@ -29,8 +29,8 @@ public class TraderRequestHandler implements Runnable {
             Gson gson = new Gson();
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+
             TraderPeerRequest request = null;
-            TraderPeerResponse response = null;
             StringBuilder traderInputBuilder = new StringBuilder();
             String traderInput;
             while ((traderInput = br.readLine()) != null) {
@@ -40,11 +40,11 @@ public class TraderRequestHandler implements Runnable {
             TraderPeerRequest traderPeerRequest = gson.fromJson(traderInputBuilder.toString(),TraderPeerRequest.class);
             TraderPeerResponse traderPeerResponse = null;
             if(traderPeerRequest.getMarket().equals(peer.getMarket())) {
-                    if(traderPeerRequest.getAction() == TraderAction.CONSULT) {
-                            traderPeerResponse = peer.consultPriceLocally(request);
-                    } else {
-                            traderPeerResponse = peer.transactLocally(request);
-                    }
+                if(traderPeerRequest.getAction() == TraderAction.CONSULT) {
+                    traderPeerResponse = peer.consultPriceLocally(request);
+                } else {
+                    traderPeerResponse = peer.transactLocally(request);
+                }
 
                 pw.println(gson.toJson(traderPeerResponse));
 

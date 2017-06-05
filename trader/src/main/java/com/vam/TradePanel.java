@@ -4,12 +4,12 @@ import com.vam.json.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +45,7 @@ public class TradePanel extends JPanel {
         this.setPreferredSize(TradeFrame.FRAME_DIM);
         //this.setLayout(new GridLayout());
         this.mStock = new HashMap<String, Stock>();
-        ScreenState = 0;
+        ScreenState = 1;
         panel();
     }
 
@@ -109,15 +109,20 @@ public class TradePanel extends JPanel {
             JTextArea availableStocks = new JTextArea(rows, 1);
             String concatStock="";
             for (Stock c : mLoginResult.getStocks()) {
-                concatStock+=c.getStock()+"\n";
-                stockValue.addItem(c.getStock());
-
+                if(!c.isFund()) {
+                    concatStock += c.getStock() + "\n";
+                    stockValue.addItem(c.getStock());
+                }
             }
-            availableStocks.setText(concatStock);
+            concatStock += "Mutal_Fund_Banking_1\n";
+            concatStock += "Mutal_Fund_Energy_1\n";
+            concatStock += "Mutal_Fund_Diversified_1\n";
+            stockValue.addItem("Mutal_Fund_Banking_1");
+            stockValue.addItem("Mutal_Fund_Energy_1");
+            stockValue.addItem("Mutal_Fund_Diversified_1");
 
             JScrollPane scroll = new JScrollPane(availableStocks);
             scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-
             add(usernameLabel, BorderLayout.NORTH);
 //            add(scroll,BorderLayout.WEST);
             add(stock, BorderLayout.CENTER);
@@ -217,14 +222,13 @@ public class TradePanel extends JPanel {
             TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
             client.sendPeerRequest(request);
         }
-    }
 
-    private void refreshFields() {
-        stockValue = new JComboBox<String>();
-        priceValue = new JTextField(15);
-        mCountry = new JComboBox<String>();
-        repaint();
-    }
+        private void refreshFields() {
+            stockValue = new JComboBox<String>();
+            priceValue = new JTextField(15);
+            mCountry = new JComboBox<String>();
+            repaint();
+        }
 
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
@@ -245,7 +249,7 @@ public class TradePanel extends JPanel {
                 TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
                 client.sendPeerRequest(request);
             }
-    }
+        }
 
     public void processConsultResponse(TraderPeerResponse response) {
         mCurrentConsResult = response;
@@ -295,3 +299,73 @@ public class TradePanel extends JPanel {
     }
 }
 
+        private void processMutualFund(String fundName, int quantity, double totalPrice) {
+            MutualFund fund = new MutualFund(fundName);
+            HashMap<String, Stock> listOfStocks = fund.getComposition();
+            ArrayList<Boolean> confirmation = new ArrayList<>();
+            for (Stock c : listOfStocks.values()) {
+                int individualQuantity = (quantity * (c.getPercentage() / 100));
+                double indivualPrice = (totalPrice * (c.getPercentage() / 100));
+                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.RESERVE, c, c.getContinent(), c.getMarket(), individualQuantity, indivualPrice);
+                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                if (client.getmResponse() instanceof TraderPeerResponse) {
+                    if (!((TraderPeerResponse) client.getmResponse()).isSucceed()) {
+                        //TODO this action
+                        processResult("failed");
+                    }
+                    //TODO complete results
+                    //mLastSaleResult=
+                }
+                //TODO this action
+                processResult("buyMF");
+            }
+
+        }
+
+        private void processMutualFundConsult(String fundName, int quantity, double totalPrice) {
+            MutualFund fund = new MutualFund(fundName);
+            HashMap<String, Stock> listOfStocks = fund.getComposition();
+            ArrayList<Boolean> confirmation = new ArrayList<>();
+            for (Stock c : listOfStocks.values()) {
+                int individualQuantity = (quantity * (c.getPercentage() / 100));
+                double indivualPrice = (totalPrice * (c.getPercentage() / 100));
+                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.CONSULT, c, c.getContinent(), c.getMarket(), individualQuantity, indivualPrice);
+                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                if (client.getmResponse() instanceof TraderPeerResponse) {
+                    if (!((TraderPeerResponse) client.getmResponse()).isSucceed()) {
+                        //TODO this action
+                        processResult("failed");
+                    }
+                    //TODO complete results
+                    //mLastSaleResult=
+                }
+                //TODO this action
+                processResult("buyMF");
+            }
+
+        }
+
+
+    private void processMutualFundConfirm(String fundName, int quantity, double totalPrice) {
+        MutualFund fund = new MutualFund(fundName);
+        HashMap<String, Stock> listOfStocks = fund.getComposition();
+        ArrayList<Boolean> confirmation = new ArrayList<>();
+        for (Stock c : listOfStocks.values()) {
+            int individualQuantity = (quantity * (c.getPercentage() / 100));
+            double indivualPrice = (totalPrice * (c.getPercentage() / 100));
+            TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.BUY, c, c.getContinent(), c.getMarket(), individualQuantity, indivualPrice);
+            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+            if (client.getmResponse() instanceof TraderPeerResponse) {
+                if (!((TraderPeerResponse) client.getmResponse()).isSucceed()) {
+                    //TODO this action
+                    processResult("failed");
+                }
+                //TODO complete results
+                //mLastSaleResult=
+            }
+            //TODO this action
+            processResult("buyMF");
+        }
+
+    }
+    }
