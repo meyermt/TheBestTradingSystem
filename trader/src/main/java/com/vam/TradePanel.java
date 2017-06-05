@@ -193,11 +193,11 @@ public class TradePanel extends JPanel {
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
             logger.info(stockItem.toString());
-            TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, 1345, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
             logger.info("about to request consulting from {}", mLoginResult.getPeerPort());
             logger.info("sending {}", request.toString());
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1345);
             client.sendPeerRequest(request);
         }
     }
@@ -216,9 +216,9 @@ public class TradePanel extends JPanel {
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
-            TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.SELL, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, 1345, TraderAction.SELL, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1345);
             client.sendPeerRequest(request);
         }
     }
@@ -244,9 +244,9 @@ public class TradePanel extends JPanel {
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
-            TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.BUY, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, 1345, TraderAction.BUY, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1345);
             client.sendPeerRequest(request);
         }
     }

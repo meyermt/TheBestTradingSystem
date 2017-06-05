@@ -59,13 +59,13 @@ public class PeerListener implements Runnable {
 
 
     private void processAdminResponse(TraderPeerResponse response) {
-//        if (response.getAction() == TraderAction.CONSULT) {
-//            tradePanel.processConsultResponse(response);
-//        } else if (response.getAction() == TraderAction.BUY) {
-//            tradePanel.processBuyResponse(response);
-//        } else if (response.getAction() == TraderAction.SELL) {
-//            tradePanel.processSellResponse(response);
-//        }
+        if (response.getAction() == TraderAction.CONSULT) {
+            tradePanel.processConsultResponse(response);
+        } else if (response.getAction() == TraderAction.BUY) {
+            tradePanel.processBuyResponse(response);
+        } else if (response.getAction() == TraderAction.SELL) {
+            tradePanel.processSellResponse(response);
+        }
     }
 
     /**
