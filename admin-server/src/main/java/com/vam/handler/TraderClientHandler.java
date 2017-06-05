@@ -44,17 +44,16 @@ public class TraderClientHandler implements Runnable{
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
             StringBuilder clientInputBuilder = new StringBuilder();
-            String clientInput="";
-            System.out.print("Before input");
-            while (input.ready()) {
-                System.out.print("While");
-                clientInputBuilder.append(clientInput);
-                System.out.print(clientInput);
+            String inputLine;
+            while (((inputLine = input.readLine()) != null) ) {
+                clientInputBuilder.append(inputLine);
+                System.out.print("While:"+inputLine);
+                break;
             }
             System.out.print("After");
             Gson gson = new Gson();
             TraderAdminRequest request = gson.fromJson(clientInputBuilder.toString(), TraderAdminRequest.class);
-            System.out.println("Got here gson");
+            System.out.println(request);
             processTraderReq(request, client);
             client.close();
         } catch (IOException e) {
@@ -64,7 +63,7 @@ public class TraderClientHandler implements Runnable{
     }
 
     private void processTraderReq(TraderAdminRequest request, Socket client) {
-        peersDB.insertPeer("127.0.0.1", 8090, "America", "USA", "New York Stock Exchange", false);
+        peersDB.insertPeer("127.0.0.1", 8090, 1346,"America", "USA", "New York Stock Exchange", false);
         //Socket client = tryClient(request);
         System.out.println("Got here");
         if (request.getAction() == TraderAdminAction.LOGIN) {

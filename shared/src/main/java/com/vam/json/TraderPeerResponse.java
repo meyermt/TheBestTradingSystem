@@ -23,9 +23,12 @@ public class TraderPeerResponse {
         this.targetPort = targetPort;
     }
 
+    public boolean isSucceed() {
+        return succeed;
+    }
 
     public String getStockName() {
-        return stockName;
+        return stock;
     }
     public boolean succeed() {
         return this.succeed;

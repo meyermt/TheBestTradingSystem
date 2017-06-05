@@ -49,7 +49,7 @@ public class TraderClient {
                 ) {
             //Send request
             Gson gson = new Gson();
-            outprinter.println(gson.toJson(serialize)+"\n");
+            outprinter.println(gson.toJson(serialize));
             System.out.println("sent Gson as Json");
             String fromAdminServer;
 

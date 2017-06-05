@@ -1,6 +1,7 @@
 package com.vam;
 
 import com.vam.json.*;
+import org.jgroups.protocols.PEER_LOCK;
 
 
 import javax.swing.*;
@@ -8,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +43,7 @@ public class TradePanel extends JPanel {
         this.setPreferredSize(TradeFrame.FRAME_DIM);
         //this.setLayout(new GridLayout());
         this.mStock = new HashMap<String, Stock>();
-        ScreenState = 0;
+        ScreenState = 1;
         panel();
     }
 
@@ -110,12 +112,19 @@ public class TradePanel extends JPanel {
             JTextArea availableStocks = new JTextArea(rows, 1);
             String concatStock="";
             for (Stock c : mLoginResult.getStocks()) {
-                concatStock+=c.getStock()+"\n";
-                stockValue.addItem(c.getStock());
-
+                if(!c.isFund()) {
+                    concatStock += c.getStock() + "\n";
+                    stockValue.addItem(c.getStock());
+                }
             }
-            availableStocks.setText(concatStock);
+            concatStock += "Mutal_Fund_Banking_1\n";
+            concatStock += "Mutal_Fund_Energy_1\n";
+            concatStock += "Mutal_Fund_Diversified_1\n";
+            stockValue.addItem("Mutal_Fund_Banking_1");
+            stockValue.addItem("Mutal_Fund_Energy_1");
+            stockValue.addItem("Mutal_Fund_Diversified_1");
 
+            availableStocks.setText(concatStock);
             add(usernameLabel, BorderLayout.NORTH);
             add(availableStocks,BorderLayout.WEST);
             add(stock, BorderLayout.CENTER);
@@ -176,88 +185,170 @@ public class TradePanel extends JPanel {
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            String stock= (String) stockValue.getSelectedItem();
-            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.CONSULT,stock,0,0);
-            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-            if(client.getmResponse() instanceof TraderPeerResponse){
-                    mCurrentConsResult=(TraderPeerResponse)client.getmResponse();
-            }
-            processResult("consult");
-            }
-    }
-
-    private class SellListener implements ActionListener {
-        public void actionPerformed(ActionEvent event) {
-            String stock= (String) stockValue.getSelectedItem();
-            double price=0;
-            int quantity=0;
-            try{
-                price= Double.parseDouble(priceValue.getText());
-                quantity = Integer.parseInt(quantityValue.getText());
-            }catch(NumberFormatException e){
-                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
-            }
-            TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.SELL,stock, price,quantity);
-            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-            if(client.getmResponse() instanceof TraderPeerResponse){
-                mLastSaleResult=(TraderPeerResponse)client.getmResponse();
-            }
-            processResult("sell");
-        }
-    }
-
-    private void refreshFields() {
-        stockValue = new JComboBox<String>();
-        priceValue = new JTextField(15);
-        mCountry = new JComboBox<String>();
-        repaint();
-    }
-
-    private class BuyListener implements ActionListener {
-        public void actionPerformed(ActionEvent event) {
-                String stock= (String) stockValue.getSelectedItem();
-                double price=0;
-                int quantity=0;
-                try{
-                    price= Double.parseDouble(priceValue.getText());
-                    quantity = Integer.parseInt(quantityValue.getText());
-                }catch(NumberFormatException e){
-                    String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
-                }
-                TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.BUY,stock, price,quantity);
+            String stockName = (String) stockValue.getSelectedItem();
+            if (stockName.startsWith("Mutual_Fund")) {
+                processMutualFundConsult(stockName, 0, 0);
+            } else {
+                Stock stockToSend = mStock.get(stockName);
+                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.CONSULT, stockToSend, stockToSend.getContinent(), stockToSend.getMarket(), 0, 0);
                 TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-                if(client.getmResponse() instanceof TraderPeerResponse){
-                    mLastSaleResult=(TraderPeerResponse)client.getmResponse();
+                if (client.getmResponse() instanceof TraderPeerResponse) {
+                    mCurrentConsResult = (TraderPeerResponse) client.getmResponse();
                 }
-                processResult("buy");
+                processResult("consult");
             }
+        }
     }
+        private class SellListener implements ActionListener {
+            public void actionPerformed(ActionEvent event) {
+                String stockName = (String) stockValue.getSelectedItem();
+                if (stockName.startsWith("Mutual_Fund")) {
+                    String sadMessage = JOptionPane.showInputDialog("Cannot sell mutual fund");
+                } else {
+                    Stock stockToSend = mStock.get(stockName);
 
-    private void processResult(String process) {
-        if (process.equals("consult")) {
-            JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
-            add(resultAlert);
+                    double price = 0;
+                    int quantity = 0;
+                    try {
+                        price = Double.parseDouble(priceValue.getText());
+                        quantity = Integer.parseInt(quantityValue.getText());
+                    } catch (NumberFormatException e) {
+                        String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+                    }
+                    TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.SELL, stockToSend, stockToSend.getContinent(), stockToSend.getMarket(), quantity, price);
+                    TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                    if (client.getmResponse() instanceof TraderPeerResponse) {
+                        mLastSaleResult = (TraderPeerResponse) client.getmResponse();
+                    }
+                    processResult("sell");
+                }
+            }
+        }
+
+        private void refreshFields() {
+            stockValue = new JComboBox<String>();
+            priceValue = new JTextField(15);
+            mCountry = new JComboBox<String>();
             repaint();
-            if(mCurrentConsResult.succeed()){
-                stockValue.setSelectedItem(mCurrentConsResult.getStockName());
-                priceValue.setText("" + mCurrentConsResult.getPrice());
-                priceValue.setEditable(false);
-                refreshFields();
-            }
         }
-        else if (process.equals("sell")){
-            if(mLastSaleResult.succeed()){
-                refreshFields();
-            }
-        }
-        else if (process.equals("buy")){
-            if(mLastSaleResult.succeed()){
-                refreshFields();
-            }
-        }
-        else{
-            throw new IllegalStateException("Process must be consult, sell or buy");
-        }
-    }
-}
 
+        private class BuyListener implements ActionListener {
+            public void actionPerformed(ActionEvent event) {
+                String stockName = (String) stockValue.getSelectedItem();
+                if (stockName.startsWith("Mutual_Fund")) {
+                    processMutualFundConsult(stockName, 0, 0);
+                } else {
+                    Stock stockToSend = mStock.get(stockName);
+
+                    double price = 0;
+                    int quantity = 0;
+                    try {
+                        price = Double.parseDouble(priceValue.getText());
+                        quantity = Integer.parseInt(quantityValue.getText());
+                    } catch (NumberFormatException e) {
+                        String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
+                    }
+                    TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.BUY, stockToSend, stockToSend.getContinent(), stockToSend.getMarket(), quantity, price);
+                    TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                    if (client.getmResponse() instanceof TraderPeerResponse) {
+                        mLastSaleResult = (TraderPeerResponse) client.getmResponse();
+                    }
+                    processResult("buy");
+                }
+            }
+        }
+
+        private void processResult(String process) {
+            if (process.equals("consult")) {
+                JLabel resultAlert = new JLabel(mCurrentConsResult.toString());
+                add(resultAlert);
+                repaint();
+                if (mCurrentConsResult.succeed()) {
+                    stockValue.setSelectedItem(mCurrentConsResult.getStockName());
+                    priceValue.setText("" + mCurrentConsResult.getPrice());
+                    priceValue.setEditable(false);
+                    refreshFields();
+                }
+            } else if (process.equals("sell")) {
+                if (mLastSaleResult.succeed()) {
+                    refreshFields();
+                }
+            } else if (process.equals("buy")) {
+                if (mLastSaleResult.succeed()) {
+                    refreshFields();
+                }
+            } else {
+                throw new IllegalStateException("Process must be consult, sell or buy");
+            }
+        }
+
+        private void processMutualFund(String fundName, int quantity, double totalPrice) {
+            MutualFund fund = new MutualFund(fundName);
+            HashMap<String, Stock> listOfStocks = fund.getComposition();
+            ArrayList<Boolean> confirmation = new ArrayList<>();
+            for (Stock c : listOfStocks.values()) {
+                int individualQuantity = (quantity * (c.getPercentage() / 100));
+                double indivualPrice = (totalPrice * (c.getPercentage() / 100));
+                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.RESERVE, c, c.getContinent(), c.getMarket(), individualQuantity, indivualPrice);
+                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                if (client.getmResponse() instanceof TraderPeerResponse) {
+                    if (!((TraderPeerResponse) client.getmResponse()).isSucceed()) {
+                        //TODO this action
+                        processResult("failed");
+                    }
+                    //TODO complete results
+                    //mLastSaleResult=
+                }
+                //TODO this action
+                processResult("buyMF");
+            }
+
+        }
+
+        private void processMutualFundConsult(String fundName, int quantity, double totalPrice) {
+            MutualFund fund = new MutualFund(fundName);
+            HashMap<String, Stock> listOfStocks = fund.getComposition();
+            ArrayList<Boolean> confirmation = new ArrayList<>();
+            for (Stock c : listOfStocks.values()) {
+                int individualQuantity = (quantity * (c.getPercentage() / 100));
+                double indivualPrice = (totalPrice * (c.getPercentage() / 100));
+                TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.CONSULT, c, c.getContinent(), c.getMarket(), individualQuantity, indivualPrice);
+                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+                if (client.getmResponse() instanceof TraderPeerResponse) {
+                    if (!((TraderPeerResponse) client.getmResponse()).isSucceed()) {
+                        //TODO this action
+                        processResult("failed");
+                    }
+                    //TODO complete results
+                    //mLastSaleResult=
+                }
+                //TODO this action
+                processResult("buyMF");
+            }
+
+        }
+
+
+    private void processMutualFundConfirm(String fundName, int quantity, double totalPrice) {
+        MutualFund fund = new MutualFund(fundName);
+        HashMap<String, Stock> listOfStocks = fund.getComposition();
+        ArrayList<Boolean> confirmation = new ArrayList<>();
+        for (Stock c : listOfStocks.values()) {
+            int individualQuantity = (quantity * (c.getPercentage() / 100));
+            double indivualPrice = (totalPrice * (c.getPercentage() / 100));
+            TraderPeerRequest request = new TraderPeerRequest("localhost", 1346, TraderAction.BUY, c, c.getContinent(), c.getMarket(), individualQuantity, indivualPrice);
+            TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
+            if (client.getmResponse() instanceof TraderPeerResponse) {
+                if (!((TraderPeerResponse) client.getmResponse()).isSucceed()) {
+                    //TODO this action
+                    processResult("failed");
+                }
+                //TODO complete results
+                //mLastSaleResult=
+            }
+            //TODO this action
+            processResult("buyMF");
+        }
+
+    }
+    }

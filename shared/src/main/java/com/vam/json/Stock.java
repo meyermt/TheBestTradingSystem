@@ -19,6 +19,7 @@ public class Stock {
     private double price = 0.0;
     private int shares = 0;
     private boolean isFund;
+    private int percentage;
     //Each stock has a list of issues and a list of price updates
     private ArrayList<Issue> issues = new ArrayList<>();
     private ArrayList<Price> prices = new ArrayList<>();
@@ -54,6 +55,15 @@ public class Stock {
         this.isFund=false;
     }
 
+
+    public Stock(String continent, String country, String market, String stock,int percentage) {
+        this.continent = continent;
+        this.country = country;
+        this.market = market;
+        this.stock = stock;
+        this.isFund=true;
+        this.percentage=percentage;
+    }
 
     public Stock(String stock, double price) {
         this.stock = stock;
@@ -99,8 +109,13 @@ public class Stock {
         return this.continent;
     }
 
+    public boolean isFund() {
+        return isFund;
+    }
+
     public String getCountry() {
         return country;
+
     }
 
 
@@ -141,6 +156,9 @@ public class Stock {
         return prices;
     }
 
+    public int getPercentage() {
+        return percentage;
+    }
 
     @Override
     public String toString() {
