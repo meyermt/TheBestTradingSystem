@@ -43,19 +43,18 @@ public class TraderClientHandler implements Runnable{
         try {
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-            System.out.print("Before input");
             StringBuilder clientInputBuilder = new StringBuilder();
-            String clientInput;
-            while ((clientInput = input.readLine()) != null) {
-            //while (input.ready()) {
-                clientInputBuilder.append(clientInput);
+            String inputLine;
+            while (((inputLine = input.readLine()) != null) ) {
+                clientInputBuilder.append(inputLine);
+                System.out.print("While:"+inputLine);
+                break;
             }
             System.out.print("After");
             Gson gson = new Gson();
             TraderAdminRequest request = gson.fromJson(clientInputBuilder.toString(), TraderAdminRequest.class);
-            System.out.println("Got here gson");
-            logger.info("client req object: {}", request);
-            processTraderReq(request);
+            System.out.println(request);
+            processTraderReq(request, client);
             client.close();
         } catch (IOException e) {
             logger.error("Ran into an issue reading or writing from client {}", client.getPort());
@@ -63,9 +62,9 @@ public class TraderClientHandler implements Runnable{
         }
     }
 
-    private void processTraderReq(TraderAdminRequest request) {
-        peersDB.insertPeer("127.0.0.1", 8050, 8051, "America", "USA", "New York Stock Exchange", false);
-        Socket client = tryClient(request);
+    private void processTraderReq(TraderAdminRequest request, Socket client) {
+        peersDB.insertPeer("127.0.0.1", 8090, 1346,"America", "USA", "New York Stock Exchange", false);
+        //Socket client = tryClient(request);
         System.out.println("Got here");
         if (request.getAction() == TraderAdminAction.LOGIN) {
             List<PeerData> peers = peersDB.getCountryPeers(request.getCountry());
