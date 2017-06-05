@@ -38,6 +38,7 @@ public class TradePanel extends JPanel {
     private TraderPeerResponse mCurrentConsResult;
     private TraderPeerResponse mLastSaleResult;
     private Logger logger = LoggerFactory.getLogger(TradePanel.class);
+    private static final String IP = "127.0.0.1";
 
     public TradePanel() {
 
@@ -152,10 +153,9 @@ public class TradePanel extends JPanel {
         public void actionPerformed(ActionEvent event) {
             String country= (String) mCountry.getSelectedItem();
             logger.info("country i got was {}", country);
-            TraderAdminRequest request= new TraderAdminRequest("127.0.0.1",1346, TraderAdminAction.LOGIN,country,"");
-            TraderClient client = new TraderClient("127.0.0.1",1347,request,"127.0.0.1",1346);
+            TraderAdminRequest request= new TraderAdminRequest(IP,1346, TraderAdminAction.LOGIN,country,"");
+            TraderClient client = new TraderClient(IP,1347,request,IP,1346);
             client.sendLoginRequest(request);
-            //processLogin(mLoginResult);
         }
     }
 
@@ -230,12 +230,9 @@ public class TradePanel extends JPanel {
 //                }catch(NumberFormatException e){
 //                    String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
 //                }
-//                TraderPeerRequest request = new TraderPeerRequest(mUsername,"localhost", 1346, TraderAction.BUY,stock, price,quantity);
-//                TraderClient client = new TraderClient("localhost", mLoginResult.getPeerPort(), request, "localhost", 1346);
-//                if(client.getmResponse() instanceof TraderPeerResponse){
-//                    mLastSaleResult=(TraderPeerResponse)client.getmResponse();
-//                }
-//                processResult("buy");
+                TraderPeerRequest request = new TraderPeerRequest(mUsername, IP, 1346, TraderAction.BUY,stock, price,quantity);
+                TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
+                client.sendBuyRequest(request);
             }
     }
 
