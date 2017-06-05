@@ -103,8 +103,10 @@ public class TradePanel extends JPanel {
 
             JLabel price = new JLabel("Price($):");
             priceValue = new JTextField(15);
+            priceValue.setEditable(false);
             JLabel quantity = new JLabel("Quantity");
             quantityValue = new JTextField(15);
+            priceValue.setEditable(false);
 
             JTextArea availableStocks = new JTextArea(rows, 1);
             String concatStock = "";
@@ -183,12 +185,6 @@ public class TradePanel extends JPanel {
             String selectedStock = (String) stockValue.getSelectedItem();
             double price = 0;
             int quantity = 0;
-            try {
-                price = Double.parseDouble(priceValue.getText());
-                quantity = Integer.parseInt(quantityValue.getText());
-            } catch (NumberFormatException e) {
-                String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
-            }
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
@@ -260,6 +256,7 @@ public class TradePanel extends JPanel {
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
         priceValue.setText("" + mCurrentConsResult.getPrice());
         priceValue.setEditable(false);
+        quantityValue.setEditable(true);
         refreshFields();
     }
 
