@@ -89,6 +89,11 @@ public class TraderClientHandler implements Runnable{
             AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.INVALID_ACTION, "", 0, Collections.emptyList());
             sendResponse(client, response);
         }
+        try {
+            client.close();
+        } catch (IOException e) {
+            throw new RuntimeException("unable to close response to trader", e);
+        }
     }
 
     private void sendResponse(Socket client, AdminTraderResponse response) {

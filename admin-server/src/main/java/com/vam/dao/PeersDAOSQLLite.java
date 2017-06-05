@@ -100,7 +100,7 @@ public class PeersDAOSQLLite implements PeersDAO {
     }
 
     public List<PeerData> getCountryPeers(String country) {
-        String sql = "SELECT id, ip, traderPort, continent, country, market, super FROM " + DB_NAME +
+        String sql = "SELECT id, ip, peerPort, traderPort, continent, country, market, super FROM " + DB_NAME +
                 " WHERE country = ?";
         return getPeerOneWhere(sql, country);
     }

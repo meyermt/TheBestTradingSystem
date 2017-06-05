@@ -19,6 +19,17 @@ public class TraderAdminRequest {
         this.failedPeerMarket = failedPeerMarket;
     }
 
+    @Override
+    public String toString() {
+        return "TraderAdminRequest{" +
+                "sourceIP='" + sourceIP + '\'' +
+                ", sourcePort=" + sourcePort +
+                ", action=" + action +
+                ", country='" + country + '\'' +
+                ", failedPeerMarket='" + failedPeerMarket + '\'' +
+                '}';
+    }
+
     public String getSourceIP() {
         return sourceIP;
     }
