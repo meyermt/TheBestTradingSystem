@@ -30,7 +30,6 @@ public class TraderRequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
 
-            TraderPeerRequest request = null;
             StringBuilder traderInputBuilder = new StringBuilder();
             String traderInput;
             while ((traderInput = br.readLine()) != null) {
@@ -41,21 +40,20 @@ public class TraderRequestHandler implements Runnable {
             TraderPeerResponse traderPeerResponse = null;
             if(traderPeerRequest.getMarket().equals(peer.getMarket())) {
                 if(traderPeerRequest.getAction() == TraderAction.CONSULT) {
-                    traderPeerResponse = peer.consultPriceLocally(request);
+                    traderPeerResponse = peer.consultPriceLocally(traderPeerRequest);
                 } else {
-                    traderPeerResponse = peer.transactLocally(request);
+                    traderPeerResponse = peer.transactLocally(traderPeerRequest);
                 }
 
-                pw.println(gson.toJson(traderPeerResponse));
+                //pw.println(gson.toJson(traderPeerResponse));
+                Socket respClient = tryClient(traderPeerRequest.getSourceIP(), traderPeerRequest.getSourcePort());
+                sendResponse(respClient, traderPeerResponse);
 
             } else {
                     PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.FIND_MARKET,peer.getMarket(),
-                            request.getMarket(),request.getContinent(),traderPeerRequest,null,null,null);
+                            traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,null,null,null);
                     peer.processMarketAction(peerToPeerMessage);
             }
-
-
-
         } catch (IOException e) {
             throw new RuntimeException("Could not connect to trader in trader to peer request handler");
         } finally {
@@ -64,6 +62,26 @@ public class TraderRequestHandler implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void sendResponse(Socket client, TraderPeerResponse response) {
+        try {
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(client.getOutputStream(), true);
+            output.println(gson.toJson(response));
+        } catch (IOException e) {
+            throw new RuntimeException("Error sending response to trader", e);
+        }
+    }
+
+    private Socket tryClient(String ip, int port) {
+        try {
+            Socket client = new Socket(ip, port);
+            return client;
+        } catch (IOException e) {
+            logger.error("Unable to secure connection back to trader at {} ip and {} port.", ip, port);
+            throw new RuntimeException(e);
         }
     }
 
