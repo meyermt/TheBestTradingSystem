@@ -248,7 +248,7 @@ public class TradePanel extends JPanel {
             }
     }
 
-    private void processConsultResponse(TraderPeerResponse response) {
+    public void processConsultResponse(TraderPeerResponse response) {
         mCurrentConsResult = response;
         logger.info("processing a consult request from my peer");
         JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
@@ -260,11 +260,11 @@ public class TradePanel extends JPanel {
         refreshFields();
     }
 
-    private void processSellResponse(TraderPeerResponse response) {
+    public void processSellResponse(TraderPeerResponse response) {
         logger.info("processing a sell request from my peer");
     }
 
-    private void processBuyResponse(TraderPeerResponse response) {
+    public void processBuyResponse(TraderPeerResponse response) {
         logger.info("processing a buy request from my peer");
     }
 
