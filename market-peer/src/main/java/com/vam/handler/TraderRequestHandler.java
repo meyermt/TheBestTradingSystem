@@ -30,27 +30,29 @@ public class TraderRequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
 
-            TraderPeerRequest request = null;
             StringBuilder traderInputBuilder = new StringBuilder();
             String traderInput;
             while ((traderInput = br.readLine()) != null) {
                     traderInputBuilder.append(traderInput);
             }
+            logger.info(traderInputBuilder.toString());
 
             TraderPeerRequest traderPeerRequest = gson.fromJson(traderInputBuilder.toString(),TraderPeerRequest.class);
             TraderPeerResponse traderPeerResponse = null;
             if(traderPeerRequest.getMarket().equals(peer.getMarket())) {
                 if(traderPeerRequest.getAction() == TraderAction.CONSULT) {
-                    traderPeerResponse = peer.consultPriceLocally(request);
+                    traderPeerResponse = peer.consultPriceLocally(traderPeerRequest);
                 } else {
-                    traderPeerResponse = peer.transactLocally(request);
+                    traderPeerResponse = peer.transactLocally(traderPeerRequest);
                 }
+
+                logger.info(traderPeerResponse.toString());
 
                 pw.println(gson.toJson(traderPeerResponse));
 
             } else {
                     PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.FIND_MARKET,peer.getMarket(),
-                            request.getMarket(),request.getContinent(),traderPeerRequest,null,null,null);
+                            traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,null,null,null);
                     peer.processMarketAction(peerToPeerMessage);
             }
 
