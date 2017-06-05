@@ -93,7 +93,10 @@ public class Peer{
     }
 
     public TraderPeerResponse consultPriceLocally(TraderPeerRequest traderPeerRequest){
-        String stockName = traderPeerRequest.getStock().getStock();
+        logger.info("we got consult {}", traderPeerRequest.toString());
+        Stock stock = traderPeerRequest.getStock();
+        String stockName = stock.getStock();
+        //String stockName = traderPeerRequest.getStock().getStock();
         double price = this.marketDAO.getPrice(stockName);
         logger.info(traderPeerRequest.getSourceIP() + "consult price of " + stockName + "and it is "+price);
         return new TraderPeerResponse(true, traderPeerRequest.getAction(),price,stockName,0,traderPeerRequest.getSourceIP(),

@@ -46,18 +46,16 @@ public class TraderRequestHandler implements Runnable {
                     traderPeerResponse = peer.transactLocally(traderPeerRequest);
                 }
 
+                //pw.println(gson.toJson(traderPeerResponse));
+                Socket respClient = tryClient(traderPeerRequest.getSourceIP(), traderPeerRequest.getSourcePort());
+                sendResponse(respClient, traderPeerResponse);
                 logger.info(traderPeerResponse.toString());
-
-                pw.println(gson.toJson(traderPeerResponse));
 
             } else {
                     PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.FIND_MARKET,peer.getMarket(),
                             traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,null,null,null);
                     peer.processMarketAction(peerToPeerMessage);
             }
-
-
-
         } catch (IOException e) {
             throw new RuntimeException("Could not connect to trader in trader to peer request handler");
         } finally {
@@ -66,6 +64,26 @@ public class TraderRequestHandler implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void sendResponse(Socket client, TraderPeerResponse response) {
+        try {
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(client.getOutputStream(), true);
+            output.println(gson.toJson(response));
+        } catch (IOException e) {
+            throw new RuntimeException("Error sending response to trader", e);
+        }
+    }
+
+    private Socket tryClient(String ip, int port) {
+        try {
+            Socket client = new Socket(ip, port);
+            return client;
+        } catch (IOException e) {
+            logger.error("Unable to secure connection back to trader at {} ip and {} port.", ip, port);
+            throw new RuntimeException(e);
         }
     }
 

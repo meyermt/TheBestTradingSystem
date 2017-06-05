@@ -54,7 +54,7 @@ public class TraderClientHandler implements Runnable{
             Gson gson = new Gson();
             TraderAdminRequest request = gson.fromJson(clientInputBuilder.toString(), TraderAdminRequest.class);
             System.out.println(request);
-            processTraderReq(request, client);
+            processTraderReq(request);
             client.close();
         } catch (IOException e) {
             logger.error("Ran into an issue reading or writing from client {}", client.getPort());
