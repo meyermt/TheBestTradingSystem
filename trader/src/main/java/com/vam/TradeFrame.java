@@ -2,6 +2,7 @@ package com.vam;
 
 
 import com.vam.client.server.AdminListener;
+import com.vam.client.server.PeerListener;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -62,6 +63,10 @@ public class TradeFrame extends JFrame{
 
         ServerSocket adminSocket = new ServerSocket(1346);
         AdminListener adminListener = new AdminListener(mPanel, adminSocket);
+        new Thread(adminListener).start();
+
+        ServerSocket peerSocket = new ServerSocket(1345);
+        PeerListener peerListener = new PeerListener(mPanel, peerSocket);
         new Thread(adminListener).start();
 
         //Let the controller be the listener for the all actions that happen on the panel

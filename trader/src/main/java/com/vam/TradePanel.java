@@ -111,7 +111,6 @@ public class TradePanel extends JPanel {
             quantityValue = new JTextField(15);
 
             JTextArea availableStocks = new JTextArea(rows, 1);
-            availableStocks.setSize(100, 200);
             String concatStock="";
             for (Stock c : mLoginResult.getStocks()) {
                 concatStock+=c.getStock()+"\n";
@@ -134,7 +133,7 @@ public class TradePanel extends JPanel {
             add(consPrice, BorderLayout.CENTER);
             add(sell, BorderLayout.CENTER);
             add(buy, BorderLayout.CENTER);
-            add(scroll,BorderLayout.WEST);
+            add(scroll,BorderLayout.SOUTH);
         }
         //Logout?
         if (ScreenState == 2) {
