@@ -60,10 +60,14 @@ public class PeerListener implements Runnable {
 
     private void processAdminResponse(TraderPeerResponse response) {
         if (response.getAction() == TraderAction.CONSULT) {
-            if (!response.getStocks().isEmpty()) { // could have used another code but cheaty way to see if it was login
-                logger.info("got a response and processing login");
-                tradePanel.processLogin(response);
-            }
+//            if (!response.getStocks().isEmpty()) { // could have used another code but cheaty way to see if it was login
+//                logger.info("got a response and processing login");
+//                tradePanel.processLogin(response);
+//            }
+        } else if (response.getAction() == TraderAction.BUY) {
+
+        } else if (response.getAction() == TraderAction.SELL) {
+
         }
     }
 
