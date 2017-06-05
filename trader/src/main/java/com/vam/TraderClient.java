@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vam.json.AdminTraderResponse;
 import com.vam.json.TraderAdminRequest;
+import com.vam.json.TraderPeerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,24 +51,31 @@ public class TraderClient {
             logger.info("sending: {}", request);
             String toSend = gson.toJson(request);
             outprinter.println(toSend);
-            //outprinter.close();
-            //outprinter.flush();
             System.out.println("sent Gson as Json");
-            String fromAdminServer;
             traderClientSocket.close();
-            //StringBuilder inputBuilder = new StringBuilder();
-            //Receive response
-            //while ((fromAdminServer=in.readLine())!=null){
-            //    inputBuilder.append(fromAdminServer);
-            //}
-            //Read the server response and attempt to parse it as JSON
-            //traderClientSocket.close();
-            //logger.info("you got this string: {}", inputBuilder.toString());
-            //return gson.fromJson(inputBuilder.toString(),AdminTraderResponse.class);
         } catch (UnknownHostException e) {
             throw new RuntimeException("bad login", e);
         } catch (IOException e) {
             throw new RuntimeException("bad login", e);
+        }
+    }
+
+    public void sendPeerRequest(TraderPeerRequest request){
+
+        try(
+                Socket peerClientSocket = new Socket(mHostName, mPortNumber);
+                PrintWriter outprinter =new PrintWriter(peerClientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(peerClientSocket.getInputStream()))
+        ) {
+            //Send request
+            Gson gson = new Gson();
+            logger.info("sending: {}", request);
+            String toSend = gson.toJson(request);
+            outprinter.println(toSend);
+            System.out.println("sent Gson as Json");
+            peerClientSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException("bad peer request", e);
         }
     }
 }
