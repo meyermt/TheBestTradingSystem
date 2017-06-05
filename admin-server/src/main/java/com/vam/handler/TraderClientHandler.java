@@ -64,7 +64,6 @@ public class TraderClientHandler implements Runnable{
     }
 
     private void processTraderReq(TraderAdminRequest request) {
-        peersDB.insertPeer("127.0.0.1", 8050, 8051, "America", "USA", "New York Stock Exchange", false);
         Socket client = tryClient(request);
         System.out.println("Got here");
         if (request.getAction() == TraderAdminAction.LOGIN) {

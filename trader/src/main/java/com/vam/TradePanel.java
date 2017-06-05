@@ -191,7 +191,8 @@ public class TradePanel extends JPanel {
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
             TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            //TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.BUY,stock, price,quantity);
+            logger.info("about to request consulting from {}", mLoginResult.getPeerPort());
+            logger.info("sending {}", request.toString());
             TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
             client.sendPeerRequest(request);
         }
@@ -213,7 +214,6 @@ public class TradePanel extends JPanel {
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
             TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.SELL, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            //TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.BUY,stock, price,quantity);
             TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
             client.sendPeerRequest(request);
         }
@@ -242,7 +242,6 @@ public class TradePanel extends JPanel {
                         .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
             TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.BUY, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-                //TraderPeerRequest request = new TraderPeerRequest(IP, 1346, TraderAction.BUY,stock, price,quantity);
                 TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1346);
                 client.sendPeerRequest(request);
             }

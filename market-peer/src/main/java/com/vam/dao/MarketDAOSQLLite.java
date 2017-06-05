@@ -41,7 +41,7 @@ public class MarketDAOSQLLite implements MarketDAO {
     }
 
     public void insertStock(String stock, double price, int quantity) {
-        logger.info("inserting stock {} with price {} and quantity {}", stock, price, quantity);
+        //logger.info("inserting stock {} with price {} and quantity {}", stock, price, quantity);
         String sql = "INSERT INTO market(stock, price, quantity) VALUES(?,?,?)";
 
         try (Connection conn = this.connect(DB_NAME);
@@ -86,7 +86,7 @@ public class MarketDAOSQLLite implements MarketDAO {
 
     @Override
     public void updatePrice(String stock, double price) {
-        logger.info("Updating stock {} to price {}", stock, price);
+        //logger.info("Updating stock {} to price {}", stock, price);
         String sql = "UPDATE market SET price = ? "
                 + "WHERE stock = ?";
 
