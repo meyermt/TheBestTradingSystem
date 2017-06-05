@@ -111,6 +111,7 @@ public class TradePanel extends JPanel {
             quantityValue = new JTextField(15);
 
             JTextArea availableStocks = new JTextArea(rows, 1);
+            availableStocks.setSize(100, 200);
             String concatStock="";
             for (Stock c : mLoginResult.getStocks()) {
                 concatStock+=c.getStock()+"\n";
@@ -119,8 +120,11 @@ public class TradePanel extends JPanel {
             }
             availableStocks.setText(concatStock);
 
+            JScrollPane scroll = new JScrollPane(availableStocks);
+            scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
             add(usernameLabel, BorderLayout.NORTH);
-            add(availableStocks,BorderLayout.WEST);
+//            add(scroll,BorderLayout.WEST);
             add(stock, BorderLayout.CENTER);
             add(stockValue, BorderLayout.CENTER);
             add(price, BorderLayout.CENTER);
@@ -130,7 +134,7 @@ public class TradePanel extends JPanel {
             add(consPrice, BorderLayout.CENTER);
             add(sell, BorderLayout.CENTER);
             add(buy, BorderLayout.CENTER);
-
+            add(scroll,BorderLayout.WEST);
         }
         //Logout?
         if (ScreenState == 2) {
