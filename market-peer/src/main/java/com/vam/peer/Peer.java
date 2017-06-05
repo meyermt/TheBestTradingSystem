@@ -114,6 +114,7 @@ public class Peer{
                     this.marketDAO.updateQuantity(stockName, availableShares - shares);
                     transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
                     transactionList.add(transaction);
+                    logger.info(traderPeerRequest.getSourceIP() + "request to buy "+stockName + " at "+price+"succeed");
                     return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
                             traderPeerRequest.getSourcePort());
                 } else {
@@ -125,6 +126,7 @@ public class Peer{
                 this.marketDAO.updateQuantity(stockName, this.marketDAO.getQuantity(stockName) + shares);
                 transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
                 transactionList.add(transaction);
+                logger.info(traderPeerRequest.getSourceIP() + "request to sell "+stockName + " at "+price+"succeed");
                 return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
                         traderPeerRequest.getSourcePort());
 
