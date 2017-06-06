@@ -243,7 +243,7 @@ public class TradePanel extends JPanel {
 
     public void processConsultResponse(TraderPeerResponse response) {
         mCurrentConsResult = response;
-        System.out.println("I'm processing the response for :"+mCurrentConsResult);
+        System.out.println("I'm processing the response for :"+response);
         logger.info("processing a consult request from my peer");
         resultAlert.setText(mCurrentConsResult.getSucceedMessage());
         //??
@@ -256,7 +256,7 @@ public class TradePanel extends JPanel {
 
     public void processSellResponse(TraderPeerResponse response) {
         logger.info("processing a sell request from my peer");
-        System.out.println("I'm processing the response for :"+mCurrentConsResult);
+        System.out.println("I'm processing the response for :"+response);
         logger.info("processing a consult request from my peer");
         resultAlert.setText(response.getSucceedMessage());
         priceValue.setText("");
@@ -268,7 +268,7 @@ public class TradePanel extends JPanel {
 
     public void processBuyResponse(TraderPeerResponse response) {
         logger.info("processing a buy request from my peer");
-        System.out.println("I'm processing the response for :"+mCurrentConsResult);
+        System.out.println("I'm processing the response for :"+response);
         logger.info("processing a consult request from my peer");
         resultAlert.setText(response.getSucceedMessage());
         priceValue.setText("");
