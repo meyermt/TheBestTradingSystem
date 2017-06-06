@@ -23,9 +23,14 @@ public class TradeFrame extends JFrame{
     /* The controller for the trader**/
     private Main mController;
 
-    //Interação do frame com o controller
-    public TradeFrame(Main controller) {
+    private int mPort1;
+    private int mPort2;
 
+    //Interação do frame com o controller
+    public TradeFrame(Main controller,int port1, int port2) {
+
+        this.mPort1=port1;
+        this.mPort2=port2;
         enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
         //Set the trader controller for the Frame
@@ -59,7 +64,7 @@ public class TradeFrame extends JFrame{
         JPanel contentPane = (JPanel) this.getContentPane();
         contentPane.setLayout(new BorderLayout());
         //Create a new Panel for the controller
-        this.mPanel = new TradePanel();
+        this.mPanel = new TradePanel(mPort1,mPort2);
 
         ServerSocket adminSocket = new ServerSocket(1346);
         AdminListener adminListener = new AdminListener(mPanel, adminSocket);
