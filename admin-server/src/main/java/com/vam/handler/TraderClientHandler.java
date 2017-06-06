@@ -43,10 +43,17 @@ public class TraderClientHandler implements Runnable{
         try {
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-
-            String clientInput = input.readLine();
+            StringBuilder clientInputBuilder = new StringBuilder();
+            String inputLine;
+            while (((inputLine = input.readLine()) != null) ) {
+                clientInputBuilder.append(inputLine);
+                System.out.print("While:"+inputLine);
+                break;
+            }
+            System.out.print("After");
             Gson gson = new Gson();
-            TraderAdminRequest request = gson.fromJson(clientInput, TraderAdminRequest.class);
+            TraderAdminRequest request = gson.fromJson(clientInputBuilder.toString(), TraderAdminRequest.class);
+            System.out.println(request);
             processTraderReq(request);
             client.close();
         } catch (IOException e) {
@@ -57,6 +64,7 @@ public class TraderClientHandler implements Runnable{
 
     private void processTraderReq(TraderAdminRequest request) {
         Socket client = tryClient(request);
+        System.out.println("Got here");
         if (request.getAction() == TraderAdminAction.LOGIN) {
             List<PeerData> peers = peersDB.getCountryPeers(request.getCountry());
             if (peers.isEmpty()) {
@@ -79,6 +87,11 @@ public class TraderClientHandler implements Runnable{
         } else {
             AdminTraderResponse response = new AdminTraderResponse(AdminTraderResponseCode.INVALID_ACTION, "", 0, Collections.emptyList());
             sendResponse(client, response);
+        }
+        try {
+            client.close();
+        } catch (IOException e) {
+            throw new RuntimeException("unable to close response to trader", e);
         }
     }
 

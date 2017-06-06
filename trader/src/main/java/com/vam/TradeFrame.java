@@ -1,8 +1,12 @@
 package com.vam;
 
 
+import com.vam.client.server.AdminListener;
+import com.vam.client.server.PeerListener;
+
 import java.awt.*;
 import java.awt.event.*;
+import java.net.ServerSocket;
 import javax.swing.*;
 
 /**
@@ -11,7 +15,7 @@ import javax.swing.*;
 public class TradeFrame extends JFrame{
 
     /** The window dimensions for the Frame */
-    public static final Dimension FRAME_DIM = new Dimension(1000, 400);
+    public static final Dimension FRAME_DIM = new Dimension(1000, 200);
 
     /* The panel for the application **/
     private TradePanel mPanel;
@@ -19,9 +23,14 @@ public class TradeFrame extends JFrame{
     /* The controller for the trader**/
     private Main mController;
 
-    //Interação do frame com o controller
-    public TradeFrame(Main controller) {
+    private int mPort1;
+    private int mPort2;
 
+    //Interação do frame com o controller
+    public TradeFrame(Main controller, int adminPort, int peerPort) {
+
+        this.mPort1=adminPort;
+        this.mPort2=peerPort;
         enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
         //Set the trader controller for the Frame
@@ -29,7 +38,7 @@ public class TradeFrame extends JFrame{
 
         try {
             // Try to initialize the panel
-            initPanel();
+            initPanel(adminPort, peerPort);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -50,12 +59,20 @@ public class TradeFrame extends JFrame{
     public void draw() {
         this.mPanel.repaint();
     }
-    private void initPanel() throws Exception {
+    private void initPanel(int adminPort, int peerPort) throws Exception {
 
         JPanel contentPane = (JPanel) this.getContentPane();
         contentPane.setLayout(new BorderLayout());
         //Create a new Panel for the controller
-        this.mPanel = new TradePanel();
+        this.mPanel = new TradePanel(adminPort, peerPort);
+
+        ServerSocket adminSocket = new ServerSocket(adminPort);
+        AdminListener adminListener = new AdminListener(mPanel, adminSocket);
+        new Thread(adminListener).start();
+
+        ServerSocket peerSocket = new ServerSocket(peerPort);
+        PeerListener peerListener = new PeerListener(mPanel, peerSocket);
+        new Thread(peerListener).start();
 
         //Let the controller be the listener for the all actions that happen on the panel
         //Add the panel to the window's content panel.

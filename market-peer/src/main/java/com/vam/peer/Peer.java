@@ -1,6 +1,7 @@
 package com.vam.peer;
 
 import com.google.gson.Gson;
+import com.vam.clock.DatabaseUpdater;
 import com.vam.dao.MarketDAO;
 import com.vam.dao.MarketDAOSQLLite;
 //import com.vam.handler.TraderRequestHandler;
@@ -18,6 +19,7 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.net.*;
@@ -68,6 +70,7 @@ public class Peer{
     private Map<String, Integer> contMap;
     private int leftPort = 0;
     private int rightPort = 0;
+    private ConcurrentHashMap.KeySetView<Transaction, Boolean> transactionSet = ConcurrentHashMap.newKeySet();
 
     public Peer(int traderPort, int peerPort, String continent, String country, String market, boolean isSuper, int superPort, int adminPort){
 
@@ -90,11 +93,133 @@ public class Peer{
         return continent;
     }
 
-    public void processMarketAction(PeerToPeerMessage message) {
+    public TraderPeerResponse consultPriceLocally(TraderPeerRequest traderPeerRequest){
+        logger.info("we got consult {}", traderPeerRequest.toString());
+        Stock stock = traderPeerRequest.getStock();
+        String stockName = stock.getStock();
+        //String stockName = traderPeerRequest.getStock().getStock();
+        double price = this.marketDAO.getPrice(stockName);
+        logger.info(traderPeerRequest.getSourceIP() + "consult price of " + stockName + " and it is "+price);
+        return new TraderPeerResponse(true, traderPeerRequest.getAction(),price,stockName,0,traderPeerRequest.getSourceIP(),
+                traderPeerRequest.getSourcePort());
+    }
+
+    public TraderPeerResponse transactLocally(TraderPeerRequest traderPeerRequest){
+        logger.info("we got consult {}", traderPeerRequest.toString());
+        String stockName = traderPeerRequest.getStock().getStock();
+        int shares = traderPeerRequest.getShares();
+        double priceRequested = traderPeerRequest.getPrice();
+        double price = this.marketDAO.getPrice(stockName);
+        //logger.info("Quantity in system before is {}", this.marketDAO.getQuantity(stockName));
+        Transaction transaction = null;
+        if(priceRequested == price) {
+            if (traderPeerRequest.getAction() == TraderAction.BUY) {
+                int availableShares = this.marketDAO.getQuantity(stockName);
+                if (availableShares > shares) {
+                    this.marketDAO.updateQuantity(stockName, availableShares - shares);
+                    //logger.info("Quantity after buy is {}", this.marketDAO.getQuantity(stockName));
+                    transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
+                    logger.info("Transaction created "+transaction.toString());
+                    transactionSet.add(transaction);
+                    logger.info(traderPeerRequest.getSourceIP() + "request to buy "+stockName + " at "+price+"succeed");
+                    return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
+                            traderPeerRequest.getSourcePort());
+                } else {
+                    logger.info(stockName + " only has " + availableShares + ", but trader requests " + shares);
+                    return new TraderPeerResponse(false, traderPeerRequest.getAction(), price, stockName, availableShares, traderPeerRequest.getSourceIP(),
+                            traderPeerRequest.getSourcePort());
+                }
+            } else {
+                this.marketDAO.updateQuantity(stockName, this.marketDAO.getQuantity(stockName) + shares);
+                //logger.info("Quantity after sell is {}", this.marketDAO.getQuantity(stockName));
+                transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
+                logger.info("Transaction created "+transaction.toString());
+                transactionSet.add(transaction);
+                logger.info(traderPeerRequest.getSourceIP() + "request to sell "+stockName + " at "+price+"succeed");
+                return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
+                        traderPeerRequest.getSourcePort());
+
+            }
+
+
+        } else {
+            logger.info("The price trader requested is "+priceRequested+" but the current price for"+stockName + " is "+price);
+            return new TraderPeerResponse(false, traderPeerRequest.getAction(),price,stockName,shares,traderPeerRequest.getSourceIP(),
+                    traderPeerRequest.getSourcePort());
+        }
 
     }
 
+    public void findMarket(PeerToPeerMessage peerToPeerMessage) {
+        if(isSuper){
+            if (peerToPeerMessage.getTraderRequest().getContinent().equals(continent)) {
+                for (PeerData peer : peerNetwork) {
+                    if (peer.getMarket().equals(peerToPeerMessage.getTargetMarket())) {
+                        passMessageToPeer(peerToPeerMessage, peer);
+                        logger.info("Superpeer:The message {} is passed to a peer{} in its network",peerToPeerMessage.toString(),peer.getMarket());
+                    }
+                }
+            } else {
+                superSendAlong(peerToPeerMessage);
+                logger.info("Superpeer: The message {} is passed to the super peer network",peerToPeerMessage.toString());
+            }
+        } else {
+            passMessageToSuper(peerToPeerMessage, superPort);
+            logger.info("Peer: The message {} is passed to its super peer{} ",peerToPeerMessage,superPort);
+        }
+    }
+
+    public void processMarketAction(PeerToPeerMessage message) {
+        logger.info("we got peer to peer message {}", message.toString());
+        PeerToPeerMessage peerToPeerMessage = null;
+        TraderPeerRequest traderPeerRequest = message.getTraderRequest();
+        if(traderPeerRequest.getAction() == TraderAction.CONSULT){
+        TraderPeerResponse traderPeerResponse = consultPriceLocally(traderPeerRequest);
+        peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,
+                traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,traderPeerResponse,null,null);
+        logger.info("peer to peer message {} for consulting the price created for sending back to trader: ",message.toString());
+        } else {
+                TraderPeerResponse traderPeerResponse = transactLocally(traderPeerRequest);
+                peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.MARKET_RESPONSE,this.market,traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),
+                        traderPeerRequest,traderPeerResponse,null,null);
+                logger.info("peer to peer message {} for buying or selling created for sending back to trader: ",message.toString());
+        }
+        if(isSuper){
+            if (message.getTraderRequest().getContinent().equals(continent)) {
+                for (PeerData peer : peerNetwork) {
+                   if (peer.getMarket().equals(message.getSourceMarket())) {
+                       passMessageToPeer(peerToPeerMessage, peer);
+                       logger.info("Superpeer:The message {} is passed to a peer{} in its network",message.toString(),peer.getMarket());
+                   }
+                }
+            } else {
+                superSendAlong(peerToPeerMessage);
+                logger.info("Superpeer: The message {} is passed to the super peer network",message.toString());
+            }
+        } else {
+            passMessageToSuper(peerToPeerMessage, superPort);
+            logger.info("Peer: The message {} is passed to its super peer{} ",peerToPeerMessage,superPort);
+
+        }
+    }
+
+
     public void processMarketResponse(PeerToPeerMessage message) {
+        logger.info("we got peer to peer message {}", message.toString());
+        TraderPeerRequest traderPeerRequest = message.getTraderRequest();
+        TraderPeerResponse traderPeerResponse = message.getResponse();
+        try {
+            Socket peerTrader = new Socket("127.0.0.1",traderPeerRequest.getSourcePort());
+            Gson gson = new Gson();
+            PrintWriter output = new PrintWriter(peerTrader.getOutputStream(), true);
+            output.println(gson.toJson(traderPeerResponse));
+            output.flush();
+            logger.info("Sending the response {} back to the trader",traderPeerResponse.toString());
+            peerTrader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.info("Errors in sending the response from the trader to the source market");
+        }
 
     }
 
@@ -113,17 +238,23 @@ public class Peer{
         int targetInt = contMap.get(message.getTargetContinent());
         if (targetInt < contMap.get(continent)) {
             passMessageToSuper(message, leftPort);
+            logger.info("Superpeer: message {} is passed to the super peer at the left Port{}", message.toString(),leftPort);
         } else {
             passMessageToSuper(message, rightPort);
+            logger.info("Superpeer: message {} is passed to the super peer at the right Port{}", message.toString(),rightPort);
         }
     }
 
     private void passMessageToSuper(PeerToPeerMessage message, int port) {
+
         try {
+            logger.info("passMessageToSuper to {} began",port);
             Socket peerClient = new Socket("127.0.0.1", port);
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
             output.println(gson.toJson(message));
+            output.flush();
+            logger.info("Message {} is sent to its super peer {}",message.toString(),port);
             peerClient.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -132,10 +263,13 @@ public class Peer{
 
     public void passMessageToPeer(PeerToPeerMessage message, PeerData peer) {
         try {
+            logger.info("passMessageToPeer  to {} began",peer.getMarket());
             Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
             output.println(gson.toJson(message));
+            output.flush();
+            logger.info("Message {} is sent to its peer {}",message.toString(),peer.getPeerPort());
             peerClient.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -147,7 +281,8 @@ public class Peer{
         try {
             Socket peerClient = new Socket("127.0.0.1", superPort);
             PeerData me = new PeerData(MY_IP, peerPort, traderPort, continent, country, market, false);
-            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.JOIN_PEER_NETWORK, null, me, Collections.emptyList());
+            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.JOIN_PEER_NETWORK, this.getMarket(), null,
+                    continent, null, null, me, Collections.emptyList());
             Gson gson = new Gson();
             PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
             output.println(gson.toJson(request));
@@ -184,68 +319,13 @@ public class Peer{
         }
     }
 
-    public PeerPeerResponse consultPrice(TraderPeerRequest request) {
-        TraderAction action = request.getAction();
-        String stockName = request.getStock().getStock();
-        String marketName = request.getStock().getMarket();
-
-        if (action != null && action == TraderAction.CONSULT) {
-            if (this.market == marketName) {
-                double price = this.marketDAO.getPrice(stockName);
-                return new PeerPeerResponse(true, action, price, stockName, 0);
-            } else {
-                if(!isSuper){
-                    try {
-                        Socket socket = new Socket(SUPER_IP,superPort);
-
-
-                } else {
-                    boolean isMyContinent = false;
-                    for (PeerData peerData : peerNetwork) {
-                        if (peerData.getMarket() == marketName) {
-                            isMyContinent = true;
-                            String ip = peerData.getIp();
-                            int port = peerData.getPeerPort();
-                            try {
-                                Socket socket = new Socket(ip, port);
-                                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-                                PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
-                                        0, stockName, 0.0);
-                                Gson gson = new Gson();
-                                pw.println(gson.toJson(peerPeerRequest));
-                                socket.setSoTimeout(1000);
-                                System.out.println("Timeout");
-                                PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
-                                if (peerPeerResponse != null) {
-                                    return peerPeerResponse;
-                                } else {
-                                    return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
-                                }
-
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                    if (isMyContinent == false) {
-
-                        //Talk to super peer
-
-                    }
-                }
-            }
-        }
-    }
-
     public void sendUpdatedNetwork(){
             logger.info("new peer group membership available. Shipping it to everyone");
-            peerNetwork.stream()
-                    .forEach(peer -> {
+            peerNetwork.forEach(peer -> {
                         try {
                             Socket peerClient = new Socket("127.0.0.1", peer.getPeerPort());
-                            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null, peerNetwork);
+                            PeerToPeerMessage request = new PeerToPeerMessage(PeerToPeerAction.UPDATE_PEER_NETWORK, null,
+                                    null, null, null, null, null, peerNetwork);
                             Gson gson = new Gson();
                             PrintWriter output = new PrintWriter(peerClient.getOutputStream(), true);
                             output.println(gson.toJson(request));
@@ -266,102 +346,18 @@ public class Peer{
         return this.market;
     }
 
-
-//    public TraderPeerResponse consult(TraderPeerRequest request){
-//        TraderAction action = request.getAction();
-//        String stockName = request.getStock().getStock();
-//        String marketName = request.getStock().getMarket();
-//        String continentName = request.getStock().getContinent();
-//
-//        if(action != null && action == TraderAction.CONSULT) {
-//            if (this.market == marketName) {
-//                double price = this.marketDAO.getPrice(stockName);
-//                return new PeerPeerResponse(true, action, price, stockName);
-//            } else {
-//                if (!isSuper) {
-//                    try {
-//
-//                        ServerSocket serverSocket = new ServerSocket(superPort);
-//                        while (true) {
-//                            Socket socket = serverSocket.accept();
-//                            PeerToPeerRequestHandler peerSpRequestHandler = new PeerToPeerRequestHandler(socket);
-//                            pool.submit(peerSpRequestHandler);
-//
-//                        }
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//
-//                    }
-//                } else {
-//                    if (continentName == this.continent) {
-//                        for (PeerData peerData : peerNetwork) {
-//                            if (peerData.getMarket() == marketName) {
-//                                String ip = peerData.getIp();
-//                                int port = peerData.getPort();
-//                                try {
-//                                    Socket socket = new Socket(ip, port);
-//                                    BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                                    PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-//                                    PeerPeerRequest peerPeerRequest = new PeerPeerRequest(request.getAction(),
-//                                            0, stockName, 0.0);
-//                                    Gson gson = new Gson();
-//                                    pw.println(gson.toJson(peerPeerRequest));
-//                                    socket.setSoTimeout(1000);
-//                                    System.out.println("Timeout");
-//                                    PeerPeerResponse peerPeerResponse = gson.fromJson(br.readLine(), PeerPeerResponse.class);
-//                                    if (peerPeerResponse != null) {
-//                                        return peerPeerResponse;
-//                                    } else {
-//                                        return new PeerPeerResponse(false, request.getAction(), 0.0, stockName, 0);
-//                                    }
-//
-//
-//                                } catch (IOException e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                        }
-//                    } else {
-//                        //Talk to super peer
-//
-//                    }
-//
-//                }
-//
-//            }
-//        }
-//    }
-//
-//    public PeerPeerResponse transact(TraderPeerRequest request) {
-//        TraderAction action = request.getAction();
-//        String stockName = request.getStock().getStock();
-//        int shares = request.getShares();
-//        if(action != null) {
-//            if (!isSuper) {
-//                if (action == TraderAction.BUY) {
-//                    int quantity = this.marketDAO.getQuantity(stockName);
-//                    if (quantity > shares) {
-//                        this.marketDAO.updateQuantity(stockName, quantity - shares);
-//                        return new PeerPeerResponse(true, request.getAction(), shares, stockName,request.getShares());
-//                    } else {
-//                        return new PeerPeerResponse(false, request.getAction(),shares,stockName,0);
-//                    }
-//                } else {
-//                    int qty = this.marketDAO.getQuantity(stockName);
-//                    this.marketDAO.updateQuantity(stockName,qty + shares);
-//                    return new PeerPeerResponse(true,request.getAction(),shares,stockName,request.getShares());
-//                }
-//            }
-//        }
-//
-//
-//    }
-
+    public ConcurrentHashMap.KeySetView<Transaction, Boolean> getTransactionSet(){
+        return this.transactionSet;
+    }
 
 
     public void start(){
 
         try {
+            // yep this is naively thinking that whenever it starts is the first time entry.
+            DatabaseUpdater updater = new DatabaseUpdater(marketDAO, this.getMarket(), PRICE_CSV);
+            new Thread(updater).start();
+
             ServerSocket adminSocket = new ServerSocket(adminPort);
             AdminListener adminListener = new AdminListener(this, adminSocket);
             new Thread(adminListener).start();
@@ -379,10 +375,12 @@ public class Peer{
                 registerNetworkWithAdminServer();
             }
 
-
-
             ServerSocket serverSocket = new ServerSocket(traderPort);
             TraderListener traderListener = new TraderListener(this,serverSocket);
+            new Thread(traderListener).start();
+
+            PrintTransactionThread printTransactionThread = new PrintTransactionThread(this);
+            new Thread(printTransactionThread).start();
 
         } catch (IOException e) {
             e.printStackTrace();

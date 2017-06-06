@@ -1,6 +1,18 @@
 # TheBestTradingSystem
 Arguably the best and fastest trading system in the world.
 
+## Running the project
+
+Each submodule is its own component, and you can build with the following commands:
+
+`./gradlew :<submodule>:shadowJar` e.g. `./gradlew :trader:shadowJar` (there are three modules, trader, admin-server, and market-peer)
+
+Each component needs to be set up separately and usually requires a number of args. Run each component after building as follows:
+
+`java -jar <submodule>/build/libs/<submodule>-all.jar <args>` e.g. `java -jar trader/build/libs/<submodule>-all.jar`
+
+Notice that if you don't know the args (watch out for the peer, there are a lot), there is quite a lot of help given to you by the Apache module used to help out with command line args. You can use short or long flags.
+
 ## Admin Server Backup Strategy
 
 The admin server creates backups of the peer database every time a non-read-only operation is invoked on the database. In this way, the "copy" of the existing trading system network can be given to another copy of the admin server if the original admin server goes down for any reason.

@@ -10,30 +10,52 @@ public class TraderPeerResponse {
     private double price;
     private String stock;
     private int shares;
+    private String targetIP;
+    private int targetPort;
 
-    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock, int shares){
+    public TraderPeerResponse(boolean succeed, TraderAction action, double price, String stock, int shares,String targetIP, int targetPort){
         this.succeed = succeed;
         this.action = action;
         this.price = price;
         this.stock = stock;
         this.shares = shares;
+        this.targetIP = targetIP;
+        this.targetPort = targetPort;
     }
 
+    public boolean isSucceed() {
+        return succeed;
+    }
 
-    public boolean succeed() {
-        return this.succeed;
+    public String getStockName() {
+        return stock;
+    }
+
+    public TraderAction getAction() {
+        return action;
     }
 
     public double getPrice() {
-        return this.price;
+        return price;
     }
 
-    public TraderAction getAction(){
-        return this.action;
+    public String getStock() {
+        return stock;
     }
 
+    public int getShares() {
+        return shares;
+    }
 
-    public String toString(){
+    public String getTargetIP() {
+        return targetIP;
+    }
+
+    public int getTargetPort() {
+        return targetPort;
+    }
+
+    public String getSucceedMessage(){
         if(this.action == TraderAction.CONSULT){
             return succeed? String.valueOf(this.price):"Failed to get price";
         } else if(this.action == TraderAction.BUY){
@@ -43,6 +65,17 @@ public class TraderPeerResponse {
         }
     }
 
-
+    @Override
+    public String toString() {
+        return "TraderPeerResponse{" +
+                "succeed=" + succeed +
+                ", action=" + action +
+                ", price=" + price +
+                ", stock='" + stock + '\'' +
+                ", shares=" + shares +
+                ", targetIP='" + targetIP + '\'' +
+                ", targetPort=" + targetPort +
+                '}';
+    }
 }
 
