@@ -55,7 +55,7 @@ public class TraderPeerResponse {
         return targetPort;
     }
 
-    public String toString(){
+    public String getSucceedMessage(){
         if(this.action == TraderAction.CONSULT){
             return succeed? String.valueOf(this.price):"Failed to get price";
         } else if(this.action == TraderAction.BUY){
@@ -65,6 +65,17 @@ public class TraderPeerResponse {
         }
     }
 
-
+    @Override
+    public String toString() {
+        return "TraderPeerResponse{" +
+                "succeed=" + succeed +
+                ", action=" + action +
+                ", price=" + price +
+                ", stock='" + stock + '\'' +
+                ", shares=" + shares +
+                ", targetIP='" + targetIP + '\'' +
+                ", targetPort=" + targetPort +
+                '}';
+    }
 }
 

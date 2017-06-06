@@ -49,6 +49,7 @@ public class TraderRequestHandler implements Runnable {
                 //pw.println(gson.toJson(traderPeerResponse));
                 Socket respClient = tryClient(traderPeerRequest.getSourceIP(), traderPeerRequest.getSourcePort());
                 sendResponse(respClient, traderPeerResponse);
+                respClient.close();
                 logger.info(traderPeerResponse.toString());
 
             } else {
@@ -73,6 +74,7 @@ public class TraderRequestHandler implements Runnable {
             logger.info("responding  to trader with {}", response.toString());
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
             output.println(gson.toJson(response));
+            output.flush();
         } catch (IOException e) {
             throw new RuntimeException("Error sending response to trader", e);
         }

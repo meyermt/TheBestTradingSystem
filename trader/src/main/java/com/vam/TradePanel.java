@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -189,11 +188,11 @@ public class TradePanel extends JPanel {
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
             logger.info(stockItem.toString());
-            TraderPeerRequest request = new TraderPeerRequest(IP, 1345, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, 12345, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
             logger.info("about to request consulting from {}", mLoginResult.getPeerPort());
             logger.info("sending {}", request.toString());
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1345);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 12345);
             client.sendPeerRequest(request);
         }
     }
@@ -212,9 +211,9 @@ public class TradePanel extends JPanel {
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
-            TraderPeerRequest request = new TraderPeerRequest(IP, 1345, TraderAction.SELL, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, 12345, TraderAction.SELL, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1345);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 12345);
             client.sendPeerRequest(request);
         }
     }
@@ -240,9 +239,9 @@ public class TradePanel extends JPanel {
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
-            TraderPeerRequest request = new TraderPeerRequest(IP, 1345, TraderAction.BUY, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, 12345, TraderAction.BUY, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 1345);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 12345);
             client.sendPeerRequest(request);
         }
     }
@@ -250,7 +249,7 @@ public class TradePanel extends JPanel {
     public void processConsultResponse(TraderPeerResponse response) {
         mCurrentConsResult = response;
         logger.info("processing a consult request from my peer");
-        JLabel resultAlert = new JLabel(mCurrentConsResult.toString());
+        JLabel resultAlert = new JLabel(mCurrentConsResult.getSucceedMessage());
         add(resultAlert);
         repaint();
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
@@ -270,7 +269,7 @@ public class TradePanel extends JPanel {
 
 //    private void processResult(String process) {
 //        if (process.equals("consult")) {
-//            JLabel resultAlert =new JLabel( mCurrentConsResult.toString());
+//            JLabel resultAlert =new JLabel( mCurrentConsResult.getSucceedMessage());
 //            add(resultAlert);
 //            repaint();
 //            if(mCurrentConsResult.succeed()){

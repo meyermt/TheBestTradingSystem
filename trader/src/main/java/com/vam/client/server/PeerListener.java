@@ -24,7 +24,7 @@ public class PeerListener implements Runnable {
     private ServerSocket socket;
     private TradePanel tradePanel;
     private boolean exit;
-    private Logger logger = LoggerFactory.getLogger(AdminListener.class);
+    private Logger logger = LoggerFactory.getLogger(PeerListener.class);
 
     public PeerListener(TradePanel tradePanel, ServerSocket socket) {
         this.tradePanel = tradePanel;
@@ -33,12 +33,12 @@ public class PeerListener implements Runnable {
 
     @Override
     public void run() {
+        logger.info("peer listener started");
         while (!exit) {
             try {
                 Socket client = socket.accept();
-                logger.info("we heard something!");
+                logger.info("we heard something peer!");
                 BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                PrintWriter output = new PrintWriter(client.getOutputStream(), true);
                 // add API code here
                 // the below code is just for example, will change when API added.
                 StringBuilder clientInputBuilder = new StringBuilder();
