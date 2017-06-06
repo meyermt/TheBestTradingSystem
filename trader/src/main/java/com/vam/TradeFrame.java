@@ -23,9 +23,14 @@ public class TradeFrame extends JFrame{
     /* The controller for the trader**/
     private Main mController;
 
+    private int mPort1;
+    private int mPort2;
+
     //Interação do frame com o controller
     public TradeFrame(Main controller, int adminPort, int peerPort) {
 
+        this.mPort1=adminPort;
+        this.mPort2=peerPort;
         enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
         //Set the trader controller for the Frame
