@@ -183,8 +183,8 @@ public class TradePanel extends JPanel {
 
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            // String selectedStock = (String) stockValue.getSelectedItem();
-            String selectedStock = "Royal Bank of Canada";
+            String selectedStock = (String) stockValue.getSelectedItem();
+            //String selectedStock = "Royal Bank of Canada";
             logger.info("selected stock is " + selectedStock);
             double price = 0;
             int quantity = 0;
@@ -224,8 +224,8 @@ public class TradePanel extends JPanel {
 
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
-            //String selectedStock = (String) stockValue.getSelectedItem();
-            String selectedStock = "Royal Bank of Canada";
+            String selectedStock = (String) stockValue.getSelectedItem();
+            //String selectedStock = "Royal Bank of Canada";
             double price = mCurrentConsResult.getPrice();
             int quantity = 0;
             logger.info("price before is {} and quantity is {}", priceValue.getText(), quantityValue.getText());
@@ -253,7 +253,7 @@ public class TradePanel extends JPanel {
         resultAlert.setText(mCurrentConsResult.getSucceedMessage());
         //??
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
-        priceValue.setText("" + mCurrentConsResult.getPrice());
+        priceValue.setText(String.valueOf(mCurrentConsResult.getPrice()));
         priceValue.setEditable(false);
         quantityValue.setEditable(true);
         repaint();
