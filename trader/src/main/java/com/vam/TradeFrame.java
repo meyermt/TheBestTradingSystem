@@ -24,7 +24,7 @@ public class TradeFrame extends JFrame{
     private Main mController;
 
     //Interação do frame com o controller
-    public TradeFrame(Main controller) {
+    public TradeFrame(Main controller, int adminPort, int peerPort) {
 
         enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
@@ -33,7 +33,7 @@ public class TradeFrame extends JFrame{
 
         try {
             // Try to initialize the panel
-            initPanel();
+            initPanel(adminPort, peerPort);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -54,18 +54,18 @@ public class TradeFrame extends JFrame{
     public void draw() {
         this.mPanel.repaint();
     }
-    private void initPanel() throws Exception {
+    private void initPanel(int adminPort, int peerPort) throws Exception {
 
         JPanel contentPane = (JPanel) this.getContentPane();
         contentPane.setLayout(new BorderLayout());
         //Create a new Panel for the controller
-        this.mPanel = new TradePanel();
+        this.mPanel = new TradePanel(int adminPort, int peerPort);
 
-        ServerSocket adminSocket = new ServerSocket(1346);
+        ServerSocket adminSocket = new ServerSocket(adminPort);
         AdminListener adminListener = new AdminListener(mPanel, adminSocket);
         new Thread(adminListener).start();
 
-        ServerSocket peerSocket = new ServerSocket(12345);
+        ServerSocket peerSocket = new ServerSocket(peerPort);
         PeerListener peerListener = new PeerListener(mPanel, peerSocket);
         new Thread(peerListener).start();
 
