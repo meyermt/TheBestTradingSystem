@@ -65,7 +65,7 @@ public class TradeFrame extends JFrame{
         AdminListener adminListener = new AdminListener(mPanel, adminSocket);
         new Thread(adminListener).start();
 
-        ServerSocket peerSocket = new ServerSocket(1345);
+        ServerSocket peerSocket = new ServerSocket(12345);
         PeerListener peerListener = new PeerListener(mPanel, peerSocket);
         new Thread(peerListener).start();
 

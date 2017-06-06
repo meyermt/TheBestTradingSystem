@@ -49,6 +49,7 @@ public class TraderRequestHandler implements Runnable {
                 //pw.println(gson.toJson(traderPeerResponse));
                 Socket respClient = tryClient(traderPeerRequest.getSourceIP(), traderPeerRequest.getSourcePort());
                 sendResponse(respClient, traderPeerResponse);
+                respClient.close();
                 logger.info(traderPeerResponse.toString());
 
             } else {
@@ -70,8 +71,10 @@ public class TraderRequestHandler implements Runnable {
     private void sendResponse(Socket client, TraderPeerResponse response) {
         try {
             Gson gson = new Gson();
+            logger.info("responding  to trader with {}", response.toString());
             PrintWriter output = new PrintWriter(client.getOutputStream(), true);
             output.println(gson.toJson(response));
+            output.flush();
         } catch (IOException e) {
             throw new RuntimeException("Error sending response to trader", e);
         }
@@ -80,6 +83,7 @@ public class TraderRequestHandler implements Runnable {
     private Socket tryClient(String ip, int port) {
         try {
             Socket client = new Socket(ip, port);
+            logger.info("connecting response client ip {} and port {}", ip, port);
             return client;
         } catch (IOException e) {
             logger.error("Unable to secure connection back to trader at {} ip and {} port.", ip, port);
