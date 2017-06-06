@@ -188,6 +188,8 @@ public class TradePanel extends JPanel {
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String selectedStock = (String) stockValue.getSelectedItem();
+            //String selectedStock = "Royal Bank of Canada";
+            logger.info("selected stock is " + selectedStock);
             double price = 0;
             int quantity = 0;
             Stock stockItem = mLoginResult.getStocks().stream()
@@ -227,14 +229,17 @@ public class TradePanel extends JPanel {
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String selectedStock = (String) stockValue.getSelectedItem();
-            double price = 0;
+            //String selectedStock = "Royal Bank of Canada";
+            double price = mCurrentConsResult.getPrice();
             int quantity = 0;
+            logger.info("price before is {} and quantity is {}", priceValue.getText(), quantityValue.getText());
             try {
-                price = Double.parseDouble(priceValue.getText());
+                //price = Double.parseDouble(priceValue.getText());
                 quantity = Integer.parseInt(quantityValue.getText());
             } catch (NumberFormatException e) {
                 String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
             }
+            logger.info("price is {} and quantity is {}", price, quantity);
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
@@ -252,7 +257,7 @@ public class TradePanel extends JPanel {
         resultAlert.setText(mCurrentConsResult.getSucceedMessage());
         //??
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
-        priceValue.setText("" + mCurrentConsResult.getPrice());
+        priceValue.setText(String.valueOf(mCurrentConsResult.getPrice()));
         priceValue.setEditable(false);
         quantityValue.setEditable(true);
         repaint();

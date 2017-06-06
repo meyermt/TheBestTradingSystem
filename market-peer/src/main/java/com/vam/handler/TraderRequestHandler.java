@@ -55,7 +55,8 @@ public class TraderRequestHandler implements Runnable {
             } else {
                     PeerToPeerMessage peerToPeerMessage = new PeerToPeerMessage(PeerToPeerAction.FIND_MARKET,peer.getMarket(),
                             traderPeerRequest.getMarket(),traderPeerRequest.getContinent(),traderPeerRequest,null,null,null);
-                    peer.processMarketAction(peerToPeerMessage);
+                    //peer.processMarketAction(peerToPeerMessage);
+                    peer.findMarket(peerToPeerMessage);
             }
         } catch (IOException e) {
             throw new RuntimeException("Could not connect to trader in trader to peer request handler");
