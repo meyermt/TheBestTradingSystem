@@ -147,6 +147,25 @@ public class Peer{
 
     }
 
+    public void findMarket(PeerToPeerMessage peerToPeerMessage) {
+        if(isSuper){
+            if (peerToPeerMessage.getTraderRequest().getContinent().equals(continent)) {
+                for (PeerData peer : peerNetwork) {
+                    if (peer.getMarket().equals(peerToPeerMessage.getTargetMarket())) {
+                        passMessageToPeer(peerToPeerMessage, peer);
+                        logger.info("Superpeer:The message {} is passed to a peer{} in its network",peerToPeerMessage.toString(),peer.getMarket());
+                    }
+                }
+            } else {
+                superSendAlong(peerToPeerMessage);
+                logger.info("Superpeer: The message {} is passed to the super peer network",peerToPeerMessage.toString());
+            }
+        } else {
+            passMessageToSuper(peerToPeerMessage, superPort);
+            logger.info("Peer: The message {} is passed to its super peer{} ",peerToPeerMessage,superPort);
+        }
+    }
+
     public void processMarketAction(PeerToPeerMessage message) {
         logger.info("we got peer to peer message {}", message.toString());
         PeerToPeerMessage peerToPeerMessage = null;

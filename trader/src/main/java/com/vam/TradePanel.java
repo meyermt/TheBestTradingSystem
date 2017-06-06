@@ -38,13 +38,18 @@ public class TradePanel extends JPanel {
     private TraderPeerResponse mLastSaleResult;
     private Logger logger = LoggerFactory.getLogger(TradePanel.class);
     private static final String IP = "127.0.0.1";
+    private JLabel resultAlert;
+    private int mPort1;
+    private int mPort2;
 
-    public TradePanel() {
+    public TradePanel(int port1, int port2) {
 
         this.setPreferredSize(TradeFrame.FRAME_DIM);
         //this.setLayout(new GridLayout());
         this.mStock = new HashMap<String, Stock>();
         ScreenState = 0;
+        this.mPort1=port1;
+        this.mPort2=port2;
         panel();
     }
 
@@ -106,7 +111,6 @@ public class TradePanel extends JPanel {
             JLabel quantity = new JLabel("Quantity");
             quantityValue = new JTextField(15);
             priceValue.setEditable(false);
-
             JTextArea availableStocks = new JTextArea(rows, 1);
             String concatStock = "";
             for (Stock c : mLoginResult.getStocks()) {
@@ -121,6 +125,7 @@ public class TradePanel extends JPanel {
             stockValue.addItem("Mutal_Fund_Banking_1");
             stockValue.addItem("Mutal_Fund_Energy_1");
             stockValue.addItem("Mutal_Fund_Diversified_1");
+            resultAlert= new JLabel("Result:");
 
             JScrollPane scroll = new JScrollPane(availableStocks);
             scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -135,6 +140,7 @@ public class TradePanel extends JPanel {
             add(consPrice, BorderLayout.CENTER);
             add(sell, BorderLayout.CENTER);
             add(buy, BorderLayout.CENTER);
+            add(resultAlert,BorderLayout.CENTER);
             //   add(scroll,BorderLayout.SOUTH);
         }
         //Logout?
@@ -154,8 +160,8 @@ public class TradePanel extends JPanel {
         public void actionPerformed(ActionEvent event) {
             String country = (String) mCountry.getSelectedItem();
             logger.info("country i got was {}", country);
-            TraderAdminRequest request = new TraderAdminRequest(IP, 1346, TraderAdminAction.LOGIN, country, "");
-            TraderClient client = new TraderClient(IP, 1347, request, IP, 1346);
+            TraderAdminRequest request = new TraderAdminRequest(IP, mPort1, TraderAdminAction.LOGIN, country, "");
+            TraderClient client = new TraderClient(IP, 1347, request, IP, mPort1);
             client.sendLoginRequest(request);
         }
     }
@@ -182,17 +188,19 @@ public class TradePanel extends JPanel {
     private class ConsultListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String selectedStock = (String) stockValue.getSelectedItem();
+            //String selectedStock = "Royal Bank of Canada";
+            logger.info("selected stock is " + selectedStock);
             double price = 0;
             int quantity = 0;
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
             logger.info(stockItem.toString());
-            TraderPeerRequest request = new TraderPeerRequest(IP, 12345, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, mPort2, TraderAction.CONSULT, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
             logger.info("about to request consulting from {}", mLoginResult.getPeerPort());
             logger.info("sending {}", request.toString());
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 12345);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, mPort2);
             client.sendPeerRequest(request);
         }
     }
@@ -211,60 +219,72 @@ public class TradePanel extends JPanel {
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
-            TraderPeerRequest request = new TraderPeerRequest(IP, 12345, TraderAction.SELL, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, mPort2, TraderAction.SELL, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 12345);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, mPort2);
             client.sendPeerRequest(request);
         }
-    }
-
-    private void refreshFields() {
-        stockValue = new JComboBox<String>();
-        priceValue = new JTextField(15);
-        mCountry = new JComboBox<String>();
-        repaint();
     }
 
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String selectedStock = (String) stockValue.getSelectedItem();
-            double price = 0;
+            //String selectedStock = "Royal Bank of Canada";
+            double price = mCurrentConsResult.getPrice();
             int quantity = 0;
+            logger.info("price before is {} and quantity is {}", priceValue.getText(), quantityValue.getText());
             try {
-                price = Double.parseDouble(priceValue.getText());
+                //price = Double.parseDouble(priceValue.getText());
                 quantity = Integer.parseInt(quantityValue.getText());
             } catch (NumberFormatException e) {
                 String sadMessage = JOptionPane.showInputDialog("Price and quantity need to be numerical");
             }
+            logger.info("price is {} and quantity is {}", price, quantity);
             Stock stockItem = mLoginResult.getStocks().stream()
                     .filter(stock -> stock.getStock().equals(selectedStock))
                     .findFirst().orElseThrow(() -> new RuntimeException("could not find stock " + selectedStock + " in list"));
-            TraderPeerRequest request = new TraderPeerRequest(IP, 12345, TraderAction.BUY, stockItem, stockItem.getContinent(),
+            TraderPeerRequest request = new TraderPeerRequest(IP, mPort2, TraderAction.BUY, stockItem, stockItem.getContinent(),
                     stockItem.getMarket(), quantity, price);
-            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, 12345);
+            TraderClient client = new TraderClient(IP, mLoginResult.getPeerPort(), request, IP, mPort2);
             client.sendPeerRequest(request);
         }
     }
 
     public void processConsultResponse(TraderPeerResponse response) {
         mCurrentConsResult = response;
+        System.out.println("I'm processing the response for :"+response);
         logger.info("processing a consult request from my peer");
-        JLabel resultAlert = new JLabel(mCurrentConsResult.getSucceedMessage());
-        add(resultAlert);
-        repaint();
+        resultAlert.setText(mCurrentConsResult.getSucceedMessage());
+        //??
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
-        priceValue.setText("" + mCurrentConsResult.getPrice());
+        priceValue.setText(String.valueOf(mCurrentConsResult.getPrice()));
         priceValue.setEditable(false);
         quantityValue.setEditable(true);
-        refreshFields();
+        repaint();
     }
 
     public void processSellResponse(TraderPeerResponse response) {
         logger.info("processing a sell request from my peer");
+        System.out.println("I'm processing the response for :"+response);
+        logger.info("processing a consult request from my peer");
+        resultAlert.setText(response.getSucceedMessage());
+        priceValue.setText("");
+        quantityValue.setText("");
+        priceValue.setEditable(false);
+        quantityValue.setEditable(true);
+        repaint();
     }
 
     public void processBuyResponse(TraderPeerResponse response) {
         logger.info("processing a buy request from my peer");
+        System.out.println("I'm processing the response for :"+response);
+        logger.info("processing a consult request from my peer");
+        resultAlert.setText(response.getSucceedMessage());
+        priceValue.setText("");
+        quantityValue.setText("");
+        priceValue.setEditable(false);
+        quantityValue.setEditable(true);
+        repaint();
     }
 
 //    private void processResult(String process) {
