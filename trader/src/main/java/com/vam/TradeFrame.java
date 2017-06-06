@@ -59,7 +59,7 @@ public class TradeFrame extends JFrame{
         JPanel contentPane = (JPanel) this.getContentPane();
         contentPane.setLayout(new BorderLayout());
         //Create a new Panel for the controller
-        this.mPanel = new TradePanel(int adminPort, int peerPort);
+        this.mPanel = new TradePanel(adminPort, peerPort);
 
         ServerSocket adminSocket = new ServerSocket(adminPort);
         AdminListener adminListener = new AdminListener(mPanel, adminSocket);

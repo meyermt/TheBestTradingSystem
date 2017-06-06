@@ -35,7 +35,7 @@ public class Main {
 
     private static Map<String, Integer> loadPortOpts(String[] args) {
         Options options = new Options();
-        Option adminOpt = new Option("tp", ADMIN_PORT, true, "Admin listening port to run on");
+        Option adminOpt = new Option("ap", ADMIN_PORT, true, "Admin listening port to run on");
         Option peerOpt = new Option("pp", PEER_PORT, true, "Peer listening port to run on");
         adminOpt.setRequired(true);
         peerOpt.setRequired(true);
@@ -47,10 +47,12 @@ public class Main {
         try {
             cmd = parser.parse(options, args);
             Map<String, Integer> ports = new HashMap<>();
-            Integer trader = Integer.parseInt(cmd.getOptionValue(ADMIN_PORT));
-            Integer peer = Integer.parseInt(cmd.getOptionValue(PEER_PORT));
-            ports.put(ADMIN_PORT, trader);
-            ports.put(PEER_PORT, peer);
+            Integer adminPort = Integer.parseInt(cmd.getOptionValue(ADMIN_PORT));
+            System.out.println("admin port is " + adminPort);
+            Integer peerPort = Integer.parseInt(cmd.getOptionValue(PEER_PORT));
+            System.out.println("peer port is " + peerPort);
+            ports.put(ADMIN_PORT, adminPort);
+            ports.put(PEER_PORT, peerPort);
             return ports;
         } catch (ParseException e) {
             formatter.printHelp("admin server help", options);
