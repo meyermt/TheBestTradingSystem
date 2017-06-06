@@ -19,6 +19,7 @@ import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.net.*;
@@ -69,7 +70,7 @@ public class Peer{
     private Map<String, Integer> contMap;
     private int leftPort = 0;
     private int rightPort = 0;
-    private List<Transaction> transactionList = new ArrayList<>();
+    private ConcurrentHashMap.KeySetView<Transaction, Boolean> transactionSet = ConcurrentHashMap.newKeySet();
 
     public Peer(int traderPort, int peerPort, String continent, String country, String market, boolean isSuper, int superPort, int adminPort){
 
@@ -117,7 +118,7 @@ public class Peer{
                     this.marketDAO.updateQuantity(stockName, availableShares - shares);
                     transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
                     logger.info("Transaction created "+transaction.toString());
-                    transactionList.add(transaction);
+                    transactionSet.add(transaction);
                     logger.info(traderPeerRequest.getSourceIP() + "request to buy "+stockName + " at "+price+"succeed");
                     return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
                             traderPeerRequest.getSourcePort());
@@ -130,7 +131,7 @@ public class Peer{
                 this.marketDAO.updateQuantity(stockName, this.marketDAO.getQuantity(stockName) + shares);
                 transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
                 logger.info("Transaction created "+transaction.toString());
-                transactionList.add(transaction);
+                transactionSet.add(transaction);
                 logger.info(traderPeerRequest.getSourceIP() + "request to sell "+stockName + " at "+price+"succeed");
                 return new TraderPeerResponse(true, traderPeerRequest.getAction(), price, stockName, shares, traderPeerRequest.getSourceIP(),
                         traderPeerRequest.getSourcePort());
@@ -323,8 +324,8 @@ public class Peer{
         return this.market;
     }
 
-    public List<Transaction> getTransactionList(){
-        return this.transactionList;
+    public ConcurrentHashMap.KeySetView<Transaction, Boolean> getTransactionSet(){
+        return this.transactionSet;
     }
 
 
