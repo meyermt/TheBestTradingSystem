@@ -248,15 +248,15 @@ public class TradePanel extends JPanel {
 
     public void processConsultResponse(TraderPeerResponse response) {
         mCurrentConsResult = response;
+        System.out.println("I'm processing the response for :"+mCurrentConsResult);
         logger.info("processing a consult request from my peer");
         JLabel resultAlert = new JLabel(mCurrentConsResult.getSucceedMessage());
         add(resultAlert);
-        repaint();
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
         priceValue.setText("" + mCurrentConsResult.getPrice());
         priceValue.setEditable(false);
         quantityValue.setEditable(true);
-        refreshFields();
+        repaint();
     }
 
     public void processSellResponse(TraderPeerResponse response) {
