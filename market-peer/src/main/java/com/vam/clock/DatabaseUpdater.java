@@ -46,6 +46,8 @@ public class DatabaseUpdater implements Runnable {
                         marketDAO.updatePrice(stocks[i], Double.parseDouble(prices[i]));
                     }
                 }
+                // this should be set to as fast as you want prices to load
+                //Thread.sleep(100000); auto test feature
                 Thread.sleep(5000);
                 prices = reader.readLine().split(","); // read new prices
             }

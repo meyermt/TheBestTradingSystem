@@ -110,12 +110,14 @@ public class Peer{
         int shares = traderPeerRequest.getShares();
         double priceRequested = traderPeerRequest.getPrice();
         double price = this.marketDAO.getPrice(stockName);
+        //logger.info("Quantity in system before is {}", this.marketDAO.getQuantity(stockName));
         Transaction transaction = null;
         if(priceRequested == price) {
             if (traderPeerRequest.getAction() == TraderAction.BUY) {
                 int availableShares = this.marketDAO.getQuantity(stockName);
                 if (availableShares > shares) {
                     this.marketDAO.updateQuantity(stockName, availableShares - shares);
+                    //logger.info("Quantity after buy is {}", this.marketDAO.getQuantity(stockName));
                     transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
                     logger.info("Transaction created "+transaction.toString());
                     transactionSet.add(transaction);
@@ -129,6 +131,7 @@ public class Peer{
                 }
             } else {
                 this.marketDAO.updateQuantity(stockName, this.marketDAO.getQuantity(stockName) + shares);
+                //logger.info("Quantity after sell is {}", this.marketDAO.getQuantity(stockName));
                 transaction = new Transaction(traderPeerRequest.getSourcePort(),traderPeerRequest.getAction(),stockName,price,shares);
                 logger.info("Transaction created "+transaction.toString());
                 transactionSet.add(transaction);

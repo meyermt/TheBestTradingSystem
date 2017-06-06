@@ -15,7 +15,7 @@ import javax.swing.*;
 public class TradeFrame extends JFrame{
 
     /** The window dimensions for the Frame */
-    public static final Dimension FRAME_DIM = new Dimension(1000, 400);
+    public static final Dimension FRAME_DIM = new Dimension(1000, 200);
 
     /* The panel for the application **/
     private TradePanel mPanel;
