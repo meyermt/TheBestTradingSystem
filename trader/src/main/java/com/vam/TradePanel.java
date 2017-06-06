@@ -38,6 +38,7 @@ public class TradePanel extends JPanel {
     private TraderPeerResponse mLastSaleResult;
     private Logger logger = LoggerFactory.getLogger(TradePanel.class);
     private static final String IP = "127.0.0.1";
+    private JLabel resultAlert;
 
     public TradePanel() {
 
@@ -106,7 +107,6 @@ public class TradePanel extends JPanel {
             JLabel quantity = new JLabel("Quantity");
             quantityValue = new JTextField(15);
             priceValue.setEditable(false);
-
             JTextArea availableStocks = new JTextArea(rows, 1);
             String concatStock = "";
             for (Stock c : mLoginResult.getStocks()) {
@@ -121,6 +121,7 @@ public class TradePanel extends JPanel {
             stockValue.addItem("Mutal_Fund_Banking_1");
             stockValue.addItem("Mutal_Fund_Energy_1");
             stockValue.addItem("Mutal_Fund_Diversified_1");
+            resultAlert= new JLabel("Result:");
 
             JScrollPane scroll = new JScrollPane(availableStocks);
             scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -135,6 +136,7 @@ public class TradePanel extends JPanel {
             add(consPrice, BorderLayout.CENTER);
             add(sell, BorderLayout.CENTER);
             add(buy, BorderLayout.CENTER);
+            add(resultAlert,BorderLayout.CENTER);
             //   add(scroll,BorderLayout.SOUTH);
         }
         //Logout?
@@ -218,13 +220,6 @@ public class TradePanel extends JPanel {
         }
     }
 
-    private void refreshFields() {
-        stockValue = new JComboBox<String>();
-        priceValue = new JTextField(15);
-        mCountry = new JComboBox<String>();
-        repaint();
-    }
-
     private class BuyListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             String selectedStock = (String) stockValue.getSelectedItem();
@@ -250,8 +245,8 @@ public class TradePanel extends JPanel {
         mCurrentConsResult = response;
         System.out.println("I'm processing the response for :"+mCurrentConsResult);
         logger.info("processing a consult request from my peer");
-        JLabel resultAlert = new JLabel(mCurrentConsResult.getSucceedMessage());
-        add(resultAlert);
+        resultAlert.setText(mCurrentConsResult.getSucceedMessage());
+        //??
         stockValue.setSelectedItem(mCurrentConsResult.getStock());
         priceValue.setText("" + mCurrentConsResult.getPrice());
         priceValue.setEditable(false);
@@ -261,10 +256,26 @@ public class TradePanel extends JPanel {
 
     public void processSellResponse(TraderPeerResponse response) {
         logger.info("processing a sell request from my peer");
+        System.out.println("I'm processing the response for :"+mCurrentConsResult);
+        logger.info("processing a consult request from my peer");
+        resultAlert.setText(response.getSucceedMessage());
+        priceValue.setText("");
+        quantityValue.setText("");
+        priceValue.setEditable(false);
+        quantityValue.setEditable(true);
+        repaint();
     }
 
     public void processBuyResponse(TraderPeerResponse response) {
         logger.info("processing a buy request from my peer");
+        System.out.println("I'm processing the response for :"+mCurrentConsResult);
+        logger.info("processing a consult request from my peer");
+        resultAlert.setText(response.getSucceedMessage());
+        priceValue.setText("");
+        quantityValue.setText("");
+        priceValue.setEditable(false);
+        quantityValue.setEditable(true);
+        repaint();
     }
 
 //    private void processResult(String process) {
